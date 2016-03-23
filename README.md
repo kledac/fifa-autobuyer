@@ -1,2 +1,2 @@
 # FIFA 16 Autobuyer
-[![Build Status](https://travis-ci.org/hunterjm/fifa-autobuyer.svg?branch=master)](https://travis-ci.org/hunterjm/fifa-autobuyer)[![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)[![Coverage Status](https://coveralls.io/repos/github/hunterjm/fifa-autobuyer/badge.svg?branch=master)](https://coveralls.io/github/hunterjm/fifa-autobuyer?branch=master)
+[![Build Status](https://travis-ci.org/hunterjm/fifa-autobuyer.svg?branch=master)](https://travis-ci.org/hunterjm/fifa-autobuyer) [![Dependency Status](https://david-dm.org/hunterjm/fifa-autobuyer.svg)](https://david-dm.org/hunterjm/fifa-autobuyer)
