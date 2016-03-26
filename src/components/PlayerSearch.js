@@ -1,32 +1,53 @@
-import _ from 'lodash';
-import React, { Component } from 'react';
-import Router from 'react-router';
-import RetinaImage from 'react-retina-image';
+import React, { PropTypes, Component } from 'react';
 import ImageCard from './ImageCard';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as PlayerActions from '../actions/players';
 import Promise from 'bluebird';
 import classNames from 'classnames';
 
 let _searchPromise = null;
 
-export default class PlayerSearch extends Component {
+class PlayerSearch extends Component {
+  static propTypes = {
+    saveResults: PropTypes.func,
+    search: PropTypes.func,
+    results: PropTypes.object
+  };
+
   constructor(props) {
     super(props);
+    const results = this.props.results || {};
     this.state = {
       query: '',
       loading: false,
-      repos: [],
-      username: '',
-      accountLoading: false,
-      error: {},
-      currentPage: 0,
-      totalPage: 0,
-      previousPage: 0,
-      nextPage: 0
+      players: results.items || [],
+      currentPage: results.page || 0,
+      totalPages: results.totalPages || 0,
+      error: false
     };
   }
 
   componentDidMount() {
     this.refs.searchInput.focus();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.results.items.length) {
+      this.setState({
+        loading: false,
+        players: nextProps.results.items,
+        currentPage: nextProps.results.page,
+        totalPages: nextProps.results.totalPages
+      });
+    }
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (nextProps.results === this.props.results && nextState.loading === this.state.loading) {
+      return false;
+    }
+    return true;
   }
 
   componentWillUnmount() {
@@ -40,26 +61,10 @@ export default class PlayerSearch extends Component {
       _searchPromise.cancel();
       _searchPromise = null;
     }
-    let previousPage = null;
-    let nextPage = null;
-    let totalPage = null;
-    // If query remains, retain pagination
-    if (this.state.query === query) {
-      previousPage = (page - 1 < 1) ? 1 : page - 1;
-      nextPage = (page + 1 > this.state.totalPage) ? this.state.totalPage : page + 1;
-      totalPage = this.state.totalPage;
-    }
-    this.setState({
-      query,
-      loading: true,
-      currentPage: page,
-      previousPage,
-      nextPage,
-      totalPage
-    });
 
     _searchPromise = Promise.delay(200).cancellable().then(() => {
       _searchPromise = null;
+      this.props.search(query, page);
     }).catch(Promise.CancellationError, () => {});
   }
 
@@ -78,23 +83,13 @@ export default class PlayerSearch extends Component {
 
   render() {
     const filter = 'all';
-    const repos = _.values(this.state.repos)
-        .filter(repo => {
-          if (repo.is_recommended || repo.is_user_repo) {
-            return repo.name.toLowerCase().indexOf(this.state.query.toLowerCase()) !== -1 ||
-              repo.namespace.toLowerCase().indexOf(this.state.query.toLowerCase()) !== -1;
-          }
-          return true;
-        })
-        .filter(repo => filter === 'all'
-          || (filter === 'recommended' && repo.is_recommended)
-          || (filter === 'userrepos' && repo.is_user_repo));
+    let players = this.state.players;
 
     let results;
     let paginateResults;
     const previous = [];
     const next = [];
-    if (this.state.previousPage) {
+    if (this.state.currentPage > 1) {
       let previousPage = this.state.currentPage - 7;
       if (previousPage < 1) {
         previousPage = 1;
@@ -112,9 +107,9 @@ export default class PlayerSearch extends Component {
         ));
       }
     }
-    if (this.state.nextPage) {
+    if (this.state.currentPage < this.state.totalPages) {
       let nextPage = this.state.currentPage + 1;
-      for (nextPage; nextPage < this.state.totalPage; nextPage++) {
+      for (nextPage; nextPage < this.state.totalPages; nextPage++) {
         next.push((
           <li><a href="" onClick={this.handlePage.bind(this, nextPage)}>{nextPage}</a></li>
         ));
@@ -145,18 +140,11 @@ export default class PlayerSearch extends Component {
         </ul>
       </nav>
     ) : null;
+
     if (this.state.error) {
       results = (
         <div className="no-results">
-          <h2>Search Above.</h2>
-        </div>
-      );
-      paginateResults = null;
-    } else if (filter === 'userrepos' && !this.state.username) {
-      results = (
-        <div className="no-results">
-          <h2><Router.Link to="/">Log In</Router.Link> to access your Players.</h2>
-          <RetinaImage src="connect-art.png" checkIfRetinaImgExists={false} />
+          <h2>There was an error searching.  Check your internet connection.</h2>
         </div>
       );
       paginateResults = null;
@@ -169,65 +157,41 @@ export default class PlayerSearch extends Component {
           </div>
         </div>
       );
-    } else if (repos.length) {
-      const recommendedItems = repos.filter(repo => repo.is_recommended)
-        .map(image => <ImageCard key={`${image.namespace}/${image.name}`} image={image} />);
-      const otherItems = repos.filter(repo => !repo.is_recommended && !repo.is_user_repo)
-        .map(image => <ImageCard key={`${image.namespace}/${image.name}`} image={image} />);
+    } else if (players.length) {
+      players = players
+        .map(player => <ImageCard key={player.id} player={player} />);
 
-      const recommendedResults = recommendedItems.length ? (
-        <div>
-          <h4>Recommended</h4>
-          <div className="result-grid">
-            {recommendedItems}
-          </div>
-        </div>
-      ) : null;
-
-      const userRepoItems = repos.filter(repo => repo.is_user_repo)
-        .map(image => <ImageCard key={`${image.namespace}/${image.name}`} image={image} />);
-      const userRepoResults = userRepoItems.length ? (
-        <div>
-          <h4>My Repositories</h4>
-          <div className="result-grid">
-            {userRepoItems}
-          </div>
-        </div>
-      ) : null;
-
-      let otherResults;
-      if (otherItems.length) {
-        otherResults = (
+      let playerResults;
+      if (players.length) {
+        playerResults = (
           <div>
-            <h4>Other Repositories</h4>
+            <h4>Matched Players</h4>
             <div className="result-grid">
-              {otherItems}
+              {players}
             </div>
           </div>
         );
       } else {
-        otherResults = null;
+        playerResults = null;
         paginateResults = null;
       }
 
       results = (
         <div className="result-grids">
-          {recommendedResults}
-          {userRepoResults}
-          {otherResults}
+          {playerResults}
         </div>
       );
     } else {
       if (this.state.query.length) {
         results = (
           <div className="no-results">
-            <h2>Cannot find a matching image.</h2>
+            <h2>Cannot find a matching player.</h2>
           </div>
         );
       } else {
         results = (
           <div className="no-results">
-            <h2>No Images</h2>
+            <h2>Search for players above.</h2>
           </div>
         );
       }
@@ -256,7 +220,7 @@ export default class PlayerSearch extends Component {
             <div className="search">
               <div className="search-bar">
                 <input type="search" ref="searchInput" className="form-control"
-                  placeholder="Search for Players" onChange={this.handleChange}
+                  placeholder="Search for Players" onChange={this.handleChange.bind(this)}
                 />
                 <div className={magnifierClasses}></div>
                 <div className={loadingClasses}><div></div></div>
@@ -284,3 +248,15 @@ export default class PlayerSearch extends Component {
     );
   }
 }
+
+function mapStateToProps(state) {
+  return {
+    results: state.searchResults
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(PlayerActions, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(PlayerSearch);

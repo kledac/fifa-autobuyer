@@ -1,35 +1,14 @@
 import $ from 'jquery';
 import React, { Component, PropTypes } from 'react';
-import RetinaImage from 'react-retina-image';
-import numeral from 'numeral';
+import ReactDOM from 'react-dom';
 
 export default class ImageCard extends Component {
   static propTypes = {
-    image: PropTypes.object
+    player: PropTypes.object
   };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      tags: [],
-      chosenTag: 'latest'
-    };
-  }
-
-  componentDidMount() {
-  }
-
-  componentWillUnmount() {
-  }
-
-  update() {
-  }
-
-  handleTagClick(tag) {
-    this.setState({
-      chosenTag: tag
-    });
-    const $tagOverlay = $(this.getDOMNode()).find('.tag-overlay');
+  handleTagClick() {
+    const $tagOverlay = $(ReactDOM.findDOMNode(this)).find('.tag-overlay');
     $tagOverlay.fadeOut(300);
   }
 
@@ -37,102 +16,58 @@ export default class ImageCard extends Component {
   }
 
   handleMenuOverlayClick() {
-    const $menuOverlay = $(this.getDOMNode()).find('.menu-overlay');
+    const $menuOverlay = $(ReactDOM.findDOMNode(this)).find('.menu-overlay');
     $menuOverlay.fadeIn(300);
   }
 
   handleCloseMenuOverlay() {
-    const $menuOverlay = $(this.getDOMNode()).find('.menu-overlay');
+    const $menuOverlay = $(ReactDOM.findDOMNode(this)).find('.menu-overlay');
     $menuOverlay.fadeOut(300);
   }
 
   handleTagOverlayClick() {
-    const $tagOverlay = $(this.getDOMNode()).find('.tag-overlay');
+    const $tagOverlay = $(ReactDOM.findDOMNode(this)).find('.tag-overlay');
     $tagOverlay.fadeIn(300);
   }
 
   handleCloseTagOverlay() {
-    const $menuOverlay = $(this.getDOMNode()).find('.menu-overlay');
+    const $menuOverlay = $(ReactDOM.findDOMNode(this)).find('.menu-overlay');
     $menuOverlay.hide();
-    const $tagOverlay = $(this.getDOMNode()).find('.tag-overlay');
+    const $tagOverlay = $(ReactDOM.findDOMNode(this)).find('.tag-overlay');
     $tagOverlay.fadeOut(300);
   }
 
   render() {
-    const self = this;
-    let name;
-    if (this.props.image.namespace === 'library') {
-      name = (
+    const name = (
         <div>
-          <div className="namespace official">official</div>
-          <span className="repo">{this.props.image.name}</span>
+          <div className="namespace">{this.props.player.club.abbrName}</div>
+          <span className="repo">{this.props.player.name}</span>
         </div>
       );
-    } else {
-      name = (
-        <div>
-          <div className="namespace">{this.props.image.namespace}</div>
-          <span className="repo">{this.props.image.name}</span>
-        </div>
-      );
-    }
-    let description;
-    if (this.props.image.description) {
-      description = this.props.image.description;
-    } else {
-      description = 'No description.';
-    }
-    const logoStyle = {
-      backgroundColor: this.props.image.gradient_start
-    };
-    let imgsrc;
-    if (this.props.image.img) {
-      imgsrc = `https://kitematic.com/recommended/${this.props.image.img}`;
-    } else {
-      imgsrc = 'https://kitematic.com/recommended/kitematic_html.png';
-    }
+    const description = this.props.player.playerType;
+    const imgsrc = this.props.player.headshotImgUrl;
+    const badge = null;
     let tags;
-    if (self.state.loading) {
-      tags = <RetinaImage className="tags-loading" src="loading.png" />;
-    } else if (self.state.tags.length === 0) {
-      tags = <div className="no-tags">No Tags</div>;
+    if (!this.props.player.specialities || !this.props.player.specialities.length) {
+      tags = <div className="no-tags">No specialities</div>;
     } else {
-      const tagDisplay = self.state.tags.map((tag) => {
-        const t = tag.name;
-        if (t === self.state.chosenTag) {
-          return <div className="tag active" key={t} onClick={self.handleTagClick.bind(self, t)}>{t}</div>;
-        }
-        return <div className="tag" key={t} onClick={self.handleTagClick.bind(self, t)}>{t}</div>;
-      });
+      const tagDisplay = this.props.player.specialities.map(
+        tag => <div className="tag" key={tag} onClick={this.handleTagClick.bind(this, tag)}>{tag}</div>
+      );
       tags = (
         <div className="tag-list">
           {tagDisplay}
         </div>
       );
     }
-    let badge = null;
-    if (this.props.image.namespace === 'library') {
-      badge = (
-        <span className="icon icon-badge-official"></span>
-      );
-    } else if (this.props.image.is_private) {
-      badge = (
-        <span className="icon icon-badge-private"></span>
-      );
-    }
-    const favCount = (this.props.image.star_count < 1000) ?
-      numeral(this.props.image.star_count).value() : numeral(this.props.image.star_count).format('0.0a').toUpperCase();
-    const pullCount = (this.props.image.pull_count < 1000) ?
-      numeral(this.props.image.pull_count).value() : numeral(this.props.image.pull_count).format('0a').toUpperCase();
     return (
       <div className="image-item">
         <div className="overlay menu-overlay">
-          <div className="menu-item" onClick={this.handleTagOverlayClick.bind(this, this.props.image.name)}>
+          <div className="menu-item" onClick={this.handleTagOverlayClick.bind(this, this.props.player.name)}>
             <span className="icon icon-tag"></span>
-            <span className="text">SELECTED TAG: <span className="selected-tag">{this.state.chosenTag}</span></span>
           </div>
           <div className="close-overlay">
-            <a className="btn btn-action circular" onClick={self.handleCloseMenuOverlay}>
+            <a className="btn btn-action circular" onClick={this.handleCloseMenuOverlay.bind(this)}>
               <span className="icon icon-delete"></span>
             </a>
           </div>
@@ -140,12 +75,12 @@ export default class ImageCard extends Component {
         <div className="overlay tag-overlay">
           <p>Please select an image tag.</p>
           {tags}
-          <div className="close-overlay" onClick={self.handleCloseTagOverlay}>
+          <div className="close-overlay" onClick={this.handleCloseTagOverlay.bind(this)}>
             <a className="btn btn-action circular"><span className="icon icon-delete"></span></a>
           </div>
         </div>
-        <div className="logo" style={logoStyle}>
-          <RetinaImage src={imgsrc} />
+        <div className="logo">
+          <img src={imgsrc} />
         </div>
         <div className="card">
           <div className="info">
@@ -162,15 +97,15 @@ export default class ImageCard extends Component {
           <div className="actions">
             <div className="favorites">
               <span className="icon icon-favorite"></span>
-              <span className="text">{favCount}</span>
+              <span className="text">0</span>
               <span className="icon icon-download"></span>
-              <span className="text">{pullCount}</span>
+              <span className="text">0</span>
             </div>
-            <div className="more-menu" onClick={self.handleMenuOverlayClick}>
+            <div className="more-menu" onClick={this.handleMenuOverlayClick.bind(this)}>
               <span className="icon icon-more"></span>
             </div>
-            <div className="action" onClick={self.handleClick}>
-              CREATE
+            <div className="action" onClick={this.handleClick.bind(this)}>
+              ADD
             </div>
           </div>
         </div>

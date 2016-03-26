@@ -3,7 +3,7 @@ import { Route, IndexRoute } from 'react-router';
 import App from './components/App';
 import Login from './components/Login';
 import Players from './components/Players';
-// import PlayerDetails from './components/PlayerDetails';
+import PlayerDetails from './components/PlayerDetails';
 // import Bidder from './components/Bidder';
 // import Bid from './components/Bid';
 // import Preferences from './components/Preferences';
@@ -12,7 +12,9 @@ import Players from './components/Players';
 export default (
   <Route path="/" component={App}>
     <IndexRoute component={Login} />
-    <Route path="players" component={Players} />
+    <Route path="players" component={Players}>
+      <Route path="/details/:id" handler={PlayerDetails} />
+    </Route>
   </Route>
 );
 

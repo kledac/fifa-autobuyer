@@ -4,11 +4,13 @@ import React, { PropTypes, Component } from 'react';
 import PlayerSearch from './PlayerSearch';
 import PlayerListItem from './PlayerListItem';
 import { Link } from 'react-router';
-// import PlayerList from './PlayerList';
 import Header from './Header';
 import shell from 'shell';
 
 class Players extends Component {
+  static propTypes = {
+    children: PropTypes.element
+  };
 
   constructor(props) {
     super(props);
@@ -109,7 +111,7 @@ class Players extends Component {
               </span>
             </section>
           </div>
-          <PlayerSearch />
+          {this.props.children || <PlayerSearch />}
         </div>
       </div>
     );
