@@ -36,8 +36,8 @@ class PlayerListItem extends Component {
     const state = (
       <OverlayTrigger placement="bottom" overlay={<Tooltip id="TOTY">TOTY</Tooltip>}>
         <div className="ut-item_affiliation--list-view ut-item--list-view-bg-rare_gold">
-          <img style={{ margin: '6px 0 0 8px' }} src={badge} />
-          <img style={{ margin: '-2px 0 0 8px' }} src={flag} />
+          <img src={badge} />
+          <img src={flag} />
         </div>
       </OverlayTrigger>
     );

@@ -1,5 +1,5 @@
 import React, { PropTypes, Component } from 'react';
-import ImageCard from './ImageCard';
+import PlayerCard from './PlayerCard';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
@@ -62,10 +62,13 @@ class PlayerSearch extends Component {
       _searchPromise = null;
     }
 
-    _searchPromise = Promise.delay(200).cancellable().then(() => {
-      _searchPromise = null;
-      this.props.search(query, page);
-    }).catch(Promise.CancellationError, () => {});
+    if (query !== '') {
+      this.setState({ loading: true });
+      _searchPromise = Promise.delay(200).cancellable().then(() => {
+        _searchPromise = null;
+        this.props.search(query, page);
+      }).catch(Promise.CancellationError, () => {});
+    }
   }
 
   handleChange(e) {
@@ -73,6 +76,7 @@ class PlayerSearch extends Component {
     if (query === this.state.query) {
       return;
     }
+    this.setState({ query });
     this.search(query);
   }
 
@@ -119,7 +123,7 @@ class PlayerSearch extends Component {
       }
       next.push((
         <li>
-          <a href="" onClick={this.handlePage.bind(this, this.state.totalPage)} aria-label="Last">
+          <a href="" onClick={this.handlePage.bind(this, this.state.totalPages)} aria-label="Last">
             <span aria-hidden="true">&raquo;</span>
           </a>
         </li>
@@ -152,14 +156,14 @@ class PlayerSearch extends Component {
       results = (
         <div className="no-results">
           <div className="loader">
-            <h2>Loading Images</h2>
+            <h2>Loading Players</h2>
             <div className="spinner la-ball-clip-rotate la-dark la-lg"><div></div></div>
           </div>
         </div>
       );
     } else if (players.length) {
       players = players
-        .map(player => <ImageCard key={player.id} player={player} />);
+        .map(player => <PlayerCard key={player.id} player={player} />);
 
       let playerResults;
       if (players.length) {

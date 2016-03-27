@@ -14,7 +14,7 @@ export default {
     searchReq = request.get(
       {
         url: `${ENDPOINT}/fut/item?`,
-        qs: { jsonParamObject: JSON.stringify({ name: query }) }
+        qs: { jsonParamObject: JSON.stringify({ page, name: query }) }
       },
       (error, response, body) => {
         const data = JSON.parse(body);
