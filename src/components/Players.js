@@ -1,49 +1,31 @@
 import $ from 'jquery';
-import _ from 'lodash';
 import React, { PropTypes, Component } from 'react';
-import PlayerSearch from './PlayerSearch';
+import ReactDOM from 'react-dom';
 import PlayerListItem from './PlayerListItem';
 import { Link } from 'react-router';
 import Header from './Header';
 import shell from 'shell';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as PlayerActions from '../actions/players';
 
 class Players extends Component {
   static propTypes = {
-    children: PropTypes.element
+    children: PropTypes.element.isRequired,
+    playerList: PropTypes.array.isRequired
   };
 
   constructor(props) {
     super(props);
     this.state = {
       sidebarOffset: 0,
-      players: [],
-      sorted: []
+      players: this.props.playerList || []
     };
   }
 
-  sorted(containers) {
-    return _.values(containers).sort((a, b) => {
-      if (a.State.Downloading && !b.State.Downloading) {
-        return -1;
-      } else if (!a.State.Downloading && b.State.Downloading) {
-        return 1;
-      }
-      if (a.State.Running && !b.State.Running) {
-        return -1;
-      } else if (!a.State.Running && b.State.Running) {
-        return 1;
-      }
-      return a.Name.localeCompare(b.Name);
-    });
-  }
-
-  update() {
-    const players = [];
-    const sorted = this.sorted([]);
-
+  componentWillReceiveProps(nextProps) {
     this.setState({
-      players,
-      sorted
+      players: nextProps.playerList
     });
   }
 
@@ -60,16 +42,12 @@ class Players extends Component {
   }
 
   handleNewPlayer() {
-    $(this.getDOMNode()).find('.new-player-item').parent().fadeIn();
+    $(ReactDOM.findDOMNode(this)).find('.new-player-item').parent().fadeIn();
     this.context.router.push('/players');
   }
 
   handleClickPlayerDatabase() {
     shell.openExternal('https://www.easports.com/fifa/ultimate-team/fut/database');
-  }
-
-  handleClickPreferences() {
-    // this.context.router.push('/preferences');
   }
 
   handleClickReportIssue() {
@@ -81,6 +59,9 @@ class Players extends Component {
     if (this.state.sidebarOffset) {
       sidebarHeaderClass += ' sep';
     }
+
+    const players = this.state.players
+      .map(player => <PlayerListItem key={player.id} player={player} />);
 
     return (
       <div className="containers">
@@ -99,7 +80,7 @@ class Players extends Component {
             </section>
             <section className="sidebar-containers" onScroll={this.handleScroll.bind(this)}>
               <ul>
-                <PlayerListItem />
+                {players}
               </ul>
             </section>
             <section className="sidebar-buttons">
@@ -111,7 +92,7 @@ class Players extends Component {
               </span>
             </section>
           </div>
-          {this.props.children || <PlayerSearch />}
+          {this.props.children}
         </div>
       </div>
     );
@@ -126,4 +107,14 @@ Players.contextTypes = {
   router: PropTypes.object.isRequired
 };
 
-export default Players;
+function mapStateToProps(state) {
+  return {
+    playerList: state.playerList
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(PlayerActions, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Players);

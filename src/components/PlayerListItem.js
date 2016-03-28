@@ -1,13 +1,21 @@
 import $ from 'jquery';
-import React, { Component } from 'react';
+import React, { PropTypes, Component } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router';
 import electron from 'electron';
 const remote = electron.remote;
 const dialog = remote.dialog;
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as PlayerActions from '../actions/players';
 
 class PlayerListItem extends Component {
+  static propTypes = {
+    player: PropTypes.object.isRequired,
+    remove: PropTypes.func.isRequired
+  };
+
   handleItemMouseEnter() {
     $(ReactDOM.findDOMNode(this)).find('.action').show();
   }
@@ -20,41 +28,40 @@ class PlayerListItem extends Component {
     e.preventDefault();
     e.stopPropagation();
     dialog.showMessageBox({
-      message: 'Are you sure you want to remove this player?',
+      message: `Are you sure you want to remove ${this.props.player.name}?`,
       buttons: ['Remove', 'Cancel']
     }, (index) => {
       if (index === 0) {
-        // TODO: Remove Player
+        this.props.remove(this.props.player);
       }
     });
   }
 
   render() {
-    const baseURL = 'https://fifa15.content.easports.com/fifa/fltOnlineAssets/B488919F-23B5-497F-9FC0-CACFB38863D0/';
-    const badge = `${baseURL}2016/fut/items/images/clubbadges/html5/normal/24x24/l243.png`;
-    const flag = `${baseURL}2016/fut/items/images/flags/html5/24x14/38.png`;
-    const state = (
+    const player = this.props.player;
+    const className = `ut-item_affiliation--list-view ut-item--list-view-bg-${player.color}`;
+    const card = (
       <OverlayTrigger placement="bottom" overlay={<Tooltip id="TOTY">TOTY</Tooltip>}>
-        <div className="ut-item_affiliation--list-view ut-item--list-view-bg-rare_gold">
-          <img src={badge} />
-          <img src={flag} />
+        <div className={className}>
+          <img src={player.club.imageUrls.normal.small} />
+          <img src={player.nation.imageUrls.small} />
         </div>
       </OverlayTrigger>
     );
 
     return (
-      <Link to="details" params={{ id: 123 }}>
+      <Link to={`/players/${player.id}`}>
         <li onMouseEnter={this.handleItemMouseEnter.bind(this)}
           onMouseLeave={this.handleItemMouseLeave.bind(this)}
-          id="123"
+          id={player.id}
         >
-          {state}
+          {card}
           <div className="info">
             <div className="name">
-              Christiano Ronaldo
+              {player.name}
             </div>
             <div className="image">
-              93 | LW | Rare Gold
+              {player.rating} | {player.position}
             </div>
           </div>
           <div className="action">
@@ -68,4 +75,12 @@ class PlayerListItem extends Component {
   }
 }
 
-export default PlayerListItem;
+function mapStateToProps() {
+  return {};
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(PlayerActions, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(PlayerListItem);

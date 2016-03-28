@@ -1,5 +1,5 @@
 import React, { PropTypes, Component } from 'react';
-import PlayerCard from './PlayerCard';
+import PlayerCard from './SmallPlayerCard';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
@@ -10,16 +10,19 @@ let _searchPromise = null;
 
 class PlayerSearch extends Component {
   static propTypes = {
-    saveResults: PropTypes.func,
-    search: PropTypes.func,
-    results: PropTypes.object
+    saveResults: PropTypes.func.isRequired,
+    search: PropTypes.func.isRequired,
+    results: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired
   };
 
   constructor(props) {
     super(props);
     const results = this.props.results || {};
+    const { query } = this.props.location || { query: {} };
     this.state = {
       query: '',
+      filter: query.filter || 'players',
       loading: false,
       players: results.items || [],
       currentPage: results.page || 0,
@@ -33,18 +36,20 @@ class PlayerSearch extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.results.items.length) {
-      this.setState({
-        loading: false,
-        players: nextProps.results.items,
-        currentPage: nextProps.results.page,
-        totalPages: nextProps.results.totalPages
-      });
-    }
+    this.setState({
+      loading: false,
+      players: nextProps.results.items,
+      currentPage: nextProps.results.page,
+      totalPages: nextProps.results.totalPages
+    });
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    if (nextProps.results === this.props.results && nextState.loading === this.state.loading) {
+    if (
+      nextProps.results === this.props.results
+      && nextProps.location === this.props.location
+      && nextState.loading === this.state.loading
+    ) {
       return false;
     }
     return true;
@@ -85,8 +90,13 @@ class PlayerSearch extends Component {
     this.search(query, page);
   }
 
+  handleFilter(filter) {
+    this.context.router.push({ pathname: '/players', query: { filter } });
+    this.setState({ filter });
+  }
+
   render() {
-    const filter = 'all';
+    const filter = this.state.filter;
     let players = this.state.players;
 
     let results;
@@ -217,6 +227,8 @@ class PlayerSearch extends Component {
       'search-icon': true
     });
 
+    const searchDisabled = this.state.filter !== 'players';
+
     return (
       <div className="details">
         <div className="new-container">
@@ -224,7 +236,7 @@ class PlayerSearch extends Component {
             <div className="search">
               <div className="search-bar">
                 <input type="search" ref="searchInput" className="form-control"
-                  placeholder="Search for Players" onChange={this.handleChange.bind(this)}
+                  placeholder="Search for Players" disabled={searchDisabled} onChange={this.handleChange.bind(this)}
                 />
                 <div className={magnifierClasses}></div>
                 <div className={loadingClasses}><div></div></div>
@@ -232,13 +244,9 @@ class PlayerSearch extends Component {
             </div>
             <div className="results-filters">
               <span className="results-filter results-filter-title">FILTER BY</span>
-              <span className={`results-filter results-all tab ${filter === 'all' ? 'active' : ''}`}>All</span>
-              <span
-                className={`results-filter results-recommended tab ${filter === 'recommended' ? 'active' : ''}`}
-              >Recommended</span>
-              <span
-                className={`results-filter results-userrepos tab ${filter === 'userrepos' ? 'active' : ''}`}
-              >My Repos</span>
+              <span className={`results-filter results-all tab ${filter === 'players' ? 'active' : ''}`}
+                onClick={this.handleFilter.bind(this, 'players')}
+              >Players</span>
             </div>
           </div>
           <div className="results">
@@ -253,9 +261,14 @@ class PlayerSearch extends Component {
   }
 }
 
+PlayerSearch.contextTypes = {
+  router: PropTypes.object.isRequired
+};
+
 function mapStateToProps(state) {
   return {
-    results: state.searchResults
+    results: state.searchResults,
+    location: state.routing.locationBeforeTransitions
   };
 }
 

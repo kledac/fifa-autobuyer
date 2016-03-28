@@ -1,13 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 
-export default class ImageCard extends Component {
+export default class PlayerCard extends Component {
   static propTypes = {
     player: PropTypes.object
   };
-
-  handleClick() {
-    console.log(this.props.player);
-  }
 
   render() {
     const player = this.props.player;
@@ -19,7 +15,7 @@ export default class ImageCard extends Component {
     }
     const cardStyle = `ut-item ut-item--big ut-item--big-bg-${player.color} ut-item--player`;
     return (
-      <div className={cardStyle} onClick={this.handleClick.bind(this)}>
+      <div className={cardStyle}>
         <div className="ut-item_meta">
           <span className="ut-item_stat ut-item_stat--num ut-item_rating">{player.rating}</span>
           <span className="ut-item_stat ut-item_stat--label ut-item_position">{player.position}</span>

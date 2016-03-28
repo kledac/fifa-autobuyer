@@ -3,6 +3,7 @@ import { Route, IndexRoute } from 'react-router';
 import App from './components/App';
 import Login from './components/Login';
 import Players from './components/Players';
+import PlayerSearch from './components/PlayerSearch';
 import PlayerDetails from './components/PlayerDetails';
 // import Bidder from './components/Bidder';
 // import Bid from './components/Bid';
@@ -13,7 +14,8 @@ export default (
   <Route path="/" component={App}>
     <IndexRoute component={Login} />
     <Route path="players" component={Players}>
-      <Route path="/details/:id" handler={PlayerDetails} />
+      <IndexRoute component={PlayerSearch} />
+      <Route path=":id" component={PlayerDetails} />
     </Route>
   </Route>
 );
