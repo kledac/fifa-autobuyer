@@ -1,6 +1,5 @@
 import React, { PropTypes, Component } from 'react';
 import utils from '../utils/Util';
-import RetinaImage from 'react-retina-image';
 
 let packages;
 try {
