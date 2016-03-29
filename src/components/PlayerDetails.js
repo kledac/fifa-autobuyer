@@ -21,7 +21,6 @@ class PlayerDetails extends Component {
           <div className="content">
             <div className="full">
               <PlayerCard player={player} />
-              {player.name}
             </div>
           </div>
         </div>

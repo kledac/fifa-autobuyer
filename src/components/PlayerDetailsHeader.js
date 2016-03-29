@@ -1,18 +1,20 @@
 import React, { PropTypes, Component } from 'react';
 import classNames from 'classnames';
+import shell from 'shell';
 
 class PlayerDetails extends Component {
   static propTypes = {
     player: PropTypes.object.isRequired
   };
 
-  handleGoBackClick() {
-    this.context.router.push('/players');
+  handleClickPlayerLink() {
+    const base = 'https://www.easports.com/fifa/ultimate-team/fut/database/player/';
+    shell.openExternal(`${base}${this.props.player.baseId}/${this.props.player.name}#${this.props.player.id}`);
   }
 
   render() {
     const player = this.props.player;
-    const tabHomeClasses = classNames({
+    const tabBioClasses = classNames({
       'details-tab': true,
       active: true,
       disabled: false
@@ -26,26 +28,26 @@ class PlayerDetails extends Component {
       <div>
         <div className="header-section">
           <div className="text">
-            {player.name}
+            {player.firstName} {player.lastName}
           </div>
         </div>
         <div className="details-subheader">
           <div className="details-header-actions">
-            <div className="action">
-              <div className="action-icon" onClick={this.handleGoBackClick.bind(this)}>
-                <span className="icon icon-search"></span>
-              </div>
-              <div className="btn-label">GO BACK</div>
-            </div>
-            <div className="action">
+            <div className="action disabled">
               <div className="action-icon">
                 <span className="icon icon-restart"></span>
               </div>
               <div className="btn-label">UPDATE</div>
             </div>
+            <div className="action" onClick={this.handleClickPlayerLink.bind(this)}>
+              <div className="action-icon">
+                <span className="icon icon-open-external"></span>
+              </div>
+              <div className="btn-label">EA BIO</div>
+            </div>
           </div>
           <div className="details-subheader-tabs">
-            <span className={tabHomeClasses}>Home</span>
+            <span className={tabBioClasses}>Bio</span>
             <span className={tabSettingsClasses}>Settings</span>
           </div>
         </div>

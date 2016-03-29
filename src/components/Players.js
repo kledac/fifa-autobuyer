@@ -1,6 +1,4 @@
-import $ from 'jquery';
 import React, { PropTypes, Component } from 'react';
-import ReactDOM from 'react-dom';
 import PlayerListItem from './PlayerListItem';
 import { Link } from 'react-router';
 import Header from './Header';
@@ -41,11 +39,6 @@ class Players extends Component {
     }
   }
 
-  handleNewPlayer() {
-    $(ReactDOM.findDOMNode(this)).find('.new-player-item').parent().fadeIn();
-    this.context.router.push('/players');
-  }
-
   handleClickPlayerDatabase() {
     shell.openExternal('https://www.easports.com/fifa/ultimate-team/fut/database');
   }
@@ -73,8 +66,7 @@ class Players extends Component {
               <div className="create">
                 <Link to="/players">
                   <span className="btn btn-new btn-action has-icon btn-hollow">
-                    <span className="icon icon-start"></span>Bid
-                  </span>
+                    <span className="icon icon-add"></span>Add</span>
                 </Link>
               </div>
             </section>
@@ -84,11 +76,14 @@ class Players extends Component {
               </ul>
             </section>
             <section className="sidebar-buttons">
-              <span className="btn-sidebar btn-terminal" onClick={this.handleClickPlayerDatabase}>
+              <span className="btn-sidebar btn-database" onClick={this.handleClickPlayerDatabase}>
                 <span className="text">Player Database</span>
               </span>
               <span className="btn-sidebar btn-feedback" onClick={this.handleClickReportIssue}>
                 <span className="icon icon-feedback"></span>
+              </span>
+              <span className="btn-sidebar btn-start">
+                <span className="icon icon-start"></span>
               </span>
             </section>
           </div>
@@ -98,10 +93,6 @@ class Players extends Component {
     );
   }
 }
-
-// <span className="btn-sidebar btn-preferences" onClick={this.handleClickPreferences}>
-//   <span className="icon icon-preferences"></span>
-// </span>
 
 Players.contextTypes = {
   router: PropTypes.object.isRequired
