@@ -14,15 +14,6 @@ export default {
   packagejson() {
     return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
   },
-  settingsjson() {
-    let settingsjson = {};
-    try {
-      settingsjson = JSON.parse(
-        fs.readFileSync(path.join(__dirname, '..', 'settings.json'), 'utf8')
-      );
-    } catch (err) {/* Failure OK */}
-    return settingsjson;
-  },
   windowsToLinuxPath(windowsAbsPath) {
     let fullPath = windowsAbsPath.replace(':', '').split(path.sep).join('/');
     if (fullPath.charAt(0) !== '/') {

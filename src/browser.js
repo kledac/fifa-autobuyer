@@ -12,18 +12,12 @@ if (process.platform !== 'win32') {
   process.env.PATH = `/usr/local/bin:${process.env.PATH}`;
 }
 
-let size = {};// , settingsjson = {};
+let size = {};
 try {
   size = JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'size')));
 } catch (err) {
   // continue regardless of error
 }
-
-// try {
-//   settingsjson = JSON.parse(fs.readFileSync(path.join(__dirname, 'settings.json'), 'utf8'));
-// } catch (err) {
-//   // continue regardless of error
-// }
 
 app.on('ready', () => {
   const mainWindow = new BrowserWindow({

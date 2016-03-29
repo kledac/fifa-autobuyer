@@ -1,4 +1,5 @@
 import { SAVE_RESULTS, ADD_PLAYER, REMOVE_PLAYER } from '../actions/players';
+import { savePlayerList, loadPlayerList } from '../utils/SearchUtil';
 
 export function searchResults(state = {}, action) {
   switch (action.type) {
@@ -10,17 +11,26 @@ export function searchResults(state = {}, action) {
 }
 
 export function playerList(state = [], action) {
+  let nextState;
   switch (action.type) {
     case ADD_PLAYER:
-      return [...state, action.player];
+      nextState = [...state, action.player];
+      break;
     case REMOVE_PLAYER: {
       const i = state.indexOf(action.player);
-      return [
+      nextState = [
         ...state.slice(0, i),
         ...state.slice(i + 1)
       ];
+      break;
     }
     default:
-      return state;
+      if (!state.length) {
+        nextState = loadPlayerList() || [];
+      } else {
+        nextState = state;
+      }
   }
+  savePlayerList(nextState);
+  return nextState;
 }

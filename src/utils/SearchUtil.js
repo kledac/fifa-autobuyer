@@ -1,5 +1,10 @@
 import request from 'request';
 import { saveResults } from '../actions/players';
+import fs from 'fs';
+import path from 'path';
+import electron from 'electron';
+const remote = electron.remote;
+const app = remote.app;
 
 const ENDPOINT = 'https://www.easports.com/uk/fifa/ultimate-team/api';
 let searchReq = null;
@@ -23,5 +28,17 @@ export default {
         }
       }
     );
+  },
+  loadPlayerList() {
+    let list = [];
+    try {
+      list = JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'players')));
+    } catch (err) {
+      // continue regardless of error
+    }
+    return list;
+  },
+  savePlayerList(playerList) {
+    fs.writeFileSync(path.join(app.getPath('userData'), 'players'), JSON.stringify(playerList));
   }
 };
