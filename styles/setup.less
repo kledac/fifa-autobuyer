@@ -78,6 +78,33 @@
           }
         }
 
+        select {
+          display: block;
+          border: 0;
+          border-bottom: 1px solid @gray-lightest;
+          background: transparent;
+          color: @gray-lighter;
+          font-weight: 300;
+          padding: 10px 5px;
+          transition: all 0.25s;
+          font-size: 18px;
+          width: 340px;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          &:focus {
+            outline: 0;
+            border-bottom: 1px solid @brand-action;
+          }
+          option {
+            color: @gray-normal;
+          }
+          option:first-child {
+            color: @gray-lighter;
+            font-weight: 400;
+          }
+        }
+
         div.checkbox {
           text-align: left;
           color: @gray-normal;

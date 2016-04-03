@@ -6,10 +6,15 @@ const remote = electron.remote;
 const Menu = remote.Menu;
 const MenuItem = remote.MenuItem;
 import classNames from 'classnames';
+import numeral from 'numeral';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as AccountActions from '../actions/account';
 
 class Header extends Component {
   static propTypes = {
-    hideLogin: PropTypes.bool.isRequired
+    hideLogin: PropTypes.bool.isRequired,
+    credits: PropTypes.number
   };
   constructor(props) {
     super(props);
@@ -127,7 +132,7 @@ class Header extends Component {
             <div className="login no-drag" onClick={this.handleUserClick.bind(this)}>
               <span className="icon icon-user"></span>
                 <span className="text">
-                  hunterjm@gmail.com
+                  {numeral(this.props.credits).format('0,0')}
                 </span>
                 <RetinaImage src="userdropdown.png" />
             </div>
@@ -168,4 +173,14 @@ Header.contextTypes = {
   router: PropTypes.object.isRequired
 };
 
-export default Header;
+function mapStateToProps(state) {
+  return {
+    credits: state.account.credits
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(AccountActions, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Header);
