@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import RetinaImage from 'react-retina-image';
 import Header from './Header';
-import getApi from '../utils/ApiUtil';
+import { getApi } from '../utils/ApiUtil';
 import validator from 'validator';
 import shell from 'shell';
 import _ from 'lodash';
@@ -15,10 +15,10 @@ class Account extends Component {
     super(props);
     this.next = undefined;
     this.state = {
-      username: '',
-      password: '',
-      secret: '',
-      platform: '',
+      username: props.account.username || '',
+      password: props.account.password || '',
+      secret: props.account.secret || '',
+      platform: props.account.platform || '',
       code: '',
       twoFactor: false,
       loading: false,
@@ -27,17 +27,21 @@ class Account extends Component {
   }
 
   componentDidMount() {
-    ReactDOM.findDOMNode(this.refs.usernameInput).focus();
+    if (this.props.account.platform) {
+      ReactDOM.findDOMNode(this.refs.platformSelect).style.color = '#556473';
+    } else {
+      ReactDOM.findDOMNode(this.refs.usernameInput).focus();
+    }
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({ errors: nextProps.errors });
+    this.setState({ errors: nextProps.errors || {} });
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return nextState.twoFactor !== this.state.twoFactor
+    return (nextState.twoFactor !== this.state.twoFactor
       || nextState.loading !== this.state.loading
-      || nextState.errors && nextState.errors !== this.state.errors;
+      || nextState.errors && nextState.errors !== this.state.errors);
   }
 
   validate() {
@@ -107,6 +111,7 @@ class Account extends Component {
           },
           (error) => {
             if (!error) {
+              this.props.saveAccount(this.state);
               apiClient.getCredits((err, response) => {
                 if (!err) {
                   this.setState({ twoFactor: false, loading: false });
@@ -153,19 +158,24 @@ class Account extends Component {
       fields = (
         <div key="initial-credentials">
           <input ref="usernameInput" maxLength="30" name="username" placeholder="Username"
-            type="text" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
+            defaultValue={this.props.account.username} type="text"
+            onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
           <p className="error-message">{this.state.errors.username}</p>
-          <input ref="passwordInput" name="password" placeholder="Password" type="password"
+          <input ref="passwordInput" name="password" placeholder="Password"
+            defaultValue={this.props.account.password} type="password"
             onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
           <p className="error-message">{this.state.errors.password}</p>
           <a className="link" onClick={this.handleClickForgotPassword}>Forgot your password?</a>
           <input ref="secretInput" name="secret" placeholder="Secret Question Answer"
-            type="password" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
+            defaultValue={this.props.account.secret} type="password"
+            onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
           <p className="error-message">{this.state.errors.secret}</p>
-          <select ref="platformSelect" name="platform" defaultValue="" onChange={this.handleChange.bind(this)}>
+          <select ref="platformSelect" name="platform"
+            defaultValue={this.props.account.platform} onChange={this.handleChange.bind(this)}
+          >
             <option disabled value="">Platform</option>
             <option value="pc">PC</option>
             <option value="xone">Xbox One</option>
@@ -208,7 +218,9 @@ class Account extends Component {
 }
 
 Account.propTypes = {
-  setCredits: PropTypes.func.isRequired
+  setCredits: PropTypes.func.isRequired,
+  saveAccount: PropTypes.func.isRequired,
+  account: PropTypes.object.isRequired
 };
 
 Account.contextTypes = {
