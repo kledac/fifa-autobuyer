@@ -11,10 +11,6 @@ import { connect } from 'react-redux';
 import * as AccountActions from '../actions/account';
 
 class Account extends Component {
-  static propTypes = {
-    setCredits: PropTypes.func.isRequired
-  };
-
   constructor(props) {
     super(props);
     this.next = undefined;
@@ -113,9 +109,9 @@ class Account extends Component {
             if (!error) {
               apiClient.getCredits((err, response) => {
                 if (!err) {
+                  this.setState({ twoFactor: false, loading: false });
                   this.props.setCredits(response.credits);
                   this.context.router.push('/players');
-                  this.setState({ twoFactor: false, loading: false });
                 }
               });
             }
@@ -146,7 +142,7 @@ class Account extends Component {
     let fields;
     if (this.state.twoFactor) {
       fields = (
-        <div>
+        <div key="two-factor">
           <input ref="codeInput" maxLength="6" name="code" placeholder="Two Factor Code" defaultValue=""
             type="text" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
@@ -155,7 +151,7 @@ class Account extends Component {
       );
     } else {
       fields = (
-        <div>
+        <div key="initial-credentials">
           <input ref="usernameInput" maxLength="30" name="username" placeholder="Username"
             type="text" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
@@ -210,6 +206,10 @@ class Account extends Component {
     );
   }
 }
+
+Account.propTypes = {
+  setCredits: PropTypes.func.isRequired
+};
 
 Account.contextTypes = {
   router: PropTypes.object.isRequired

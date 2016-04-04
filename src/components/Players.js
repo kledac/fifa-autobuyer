@@ -8,11 +8,6 @@ import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
 
 class Players extends Component {
-  static propTypes = {
-    children: PropTypes.element.isRequired,
-    playerList: PropTypes.array.isRequired
-  };
-
   constructor(props) {
     super(props);
     this.state = {
@@ -93,6 +88,11 @@ class Players extends Component {
     );
   }
 }
+
+Players.propTypes = {
+  children: PropTypes.element.isRequired,
+  playerList: PropTypes.array.isRequired
+};
 
 Players.contextTypes = {
   router: PropTypes.object.isRequired

@@ -11,11 +11,6 @@ import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
 
 class PlayerListItem extends Component {
-  static propTypes = {
-    player: PropTypes.object.isRequired,
-    remove: PropTypes.func.isRequired
-  };
-
   handleItemMouseEnter() {
     $(ReactDOM.findDOMNode(this)).find('.action').show();
   }
@@ -74,6 +69,11 @@ class PlayerListItem extends Component {
     );
   }
 }
+
+PlayerListItem.propTypes = {
+  player: PropTypes.object.isRequired,
+  remove: PropTypes.func.isRequired
+};
 
 function mapStateToProps() {
   return {};

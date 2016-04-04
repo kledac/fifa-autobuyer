@@ -2,11 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import classNames from 'classnames';
 import shell from 'shell';
 
-class PlayerDetails extends Component {
-  static propTypes = {
-    player: PropTypes.object.isRequired
-  };
-
+class PlayerDetailsHeader extends Component {
   handleClickPlayerLink() {
     const base = 'https://www.easports.com/fifa/ultimate-team/fut/database/player/';
     shell.openExternal(`${base}${this.props.player.baseId}/${this.props.player.name}#${this.props.player.id}`);
@@ -56,7 +52,12 @@ class PlayerDetails extends Component {
   }
 }
 
-PlayerDetails.contextTypes = {
+PlayerDetailsHeader.propTypes = {
+  player: PropTypes.object.isRequired
+};
+
+PlayerDetailsHeader.contextTypes = {
   router: PropTypes.object.isRequired
 };
-export default PlayerDetails;
+
+export default PlayerDetailsHeader;

@@ -4,11 +4,6 @@ import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
 
 class SmallPlayerCard extends Component {
-  static propTypes = {
-    player: PropTypes.object.isRequired,
-    add: PropTypes.func.isRequired
-  };
-
   handleClick() {
     this.props.add(this.props.player);
   }
@@ -85,6 +80,11 @@ class SmallPlayerCard extends Component {
     );
   }
 }
+
+SmallPlayerCard.propTypes = {
+  player: PropTypes.object.isRequired,
+  add: PropTypes.func.isRequired
+};
 
 function mapStateToProps() {
   return {};

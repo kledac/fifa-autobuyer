@@ -12,10 +12,6 @@ import { connect } from 'react-redux';
 import * as AccountActions from '../actions/account';
 
 class Header extends Component {
-  static propTypes = {
-    hideLogin: PropTypes.bool.isRequired,
-    credits: PropTypes.number
-  };
   constructor(props) {
     super(props);
     this.state = {
@@ -168,6 +164,11 @@ class Header extends Component {
     return this.renderDashboardHeader();
   }
 }
+
+Header.propTypes = {
+  hideLogin: PropTypes.bool.isRequired,
+  credits: PropTypes.number
+};
 
 Header.contextTypes = {
   router: PropTypes.object.isRequired

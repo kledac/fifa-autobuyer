@@ -1,10 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 
-export default class PlayerCard extends Component {
-  static propTypes = {
-    player: PropTypes.object
-  };
-
+class PlayerCard extends Component {
   render() {
     const player = this.props.player;
     let imgsrc;
@@ -76,3 +72,9 @@ export default class PlayerCard extends Component {
     );
   }
 }
+
+PlayerCard.propTypes = {
+  player: PropTypes.object
+};
+
+export default PlayerCard;

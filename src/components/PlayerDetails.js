@@ -7,11 +7,6 @@ import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
 
 class PlayerDetails extends Component {
-  static propTypes = {
-    params: PropTypes.object.isRequired,
-    playerList: PropTypes.array.isRequired
-  };
-
   render() {
     const player = find(this.props.playerList, { id: this.props.params.id });
     return (
@@ -28,6 +23,11 @@ class PlayerDetails extends Component {
     );
   }
 }
+
+PlayerDetails.propTypes = {
+  params: PropTypes.object.isRequired,
+  playerList: PropTypes.array.isRequired
+};
 
 PlayerDetails.contextTypes = {
   router: PropTypes.object.isRequired

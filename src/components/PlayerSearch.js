@@ -9,13 +9,6 @@ import classNames from 'classnames';
 let _searchPromise = null;
 
 class PlayerSearch extends Component {
-  static propTypes = {
-    saveResults: PropTypes.func.isRequired,
-    search: PropTypes.func.isRequired,
-    results: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired
-  };
-
   constructor(props) {
     super(props);
     const results = this.props.results || {};
@@ -260,6 +253,13 @@ class PlayerSearch extends Component {
     );
   }
 }
+
+PlayerSearch.propTypes = {
+  saveResults: PropTypes.func.isRequired,
+  search: PropTypes.func.isRequired,
+  results: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired
+};
 
 PlayerSearch.contextTypes = {
   router: PropTypes.object.isRequired
