@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import RetinaImage from 'react-retina-image';
@@ -89,7 +90,7 @@ class Account extends Component {
     this.setState({ errors: _.omitBy(this.validate(), (val, key) => !this.state[key].length) });
   }
 
-  handleLogin() {
+  async handleLogin() {
     if (this.next !== undefined) {
       this.setState({ loading: true });
       this.next(this.state.code);
@@ -100,7 +101,7 @@ class Account extends Component {
       if (_.isEmpty(errors)) {
         this.setState({ loading: true });
         const apiClient = getApi(this.state.username);
-        apiClient.login(
+        await apiClient.loginAsync(
           this.state.username,
           this.state.password,
           this.state.secret,
@@ -108,20 +109,13 @@ class Account extends Component {
           (next) => {
             this.setState({ twoFactor: true, loading: false });
             this.next = next;
-          },
-          (error) => {
-            if (!error) {
-              this.props.saveAccount(this.state);
-              apiClient.getCredits((err, response) => {
-                if (!err) {
-                  this.setState({ twoFactor: false, loading: false });
-                  this.props.setCredits(response.credits);
-                  this.context.router.push('/players');
-                }
-              });
-            }
           }
         );
+        this.props.saveAccount(this.state);
+        const creditResponse = await apiClient.getCreditsAsync();
+        this.setState({ twoFactor: false, loading: false });
+        this.props.setCredits(creditResponse.credits);
+        this.context.router.push('/players');
       }
     }
   }
