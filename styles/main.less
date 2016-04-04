@@ -22,19 +22,24 @@
 @import "fut.less";
 @import "sprites.less";
 
-html, body, #app, #app-main {
+html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
   font-family: @font-regular;
   cursor: default;
   -webkit-font-smoothing: subpixel-antialiased;
   text-rendering: optimizelegibility;
-  //-webkit-font-smoothing: antialiased;
   img {
     pointer-events: none;
   }
 }
+
+ #app, #app-main {
+   height: 100%;
+   width: 100%;
+   overflow: hidden;
+   background: none;
+ }
