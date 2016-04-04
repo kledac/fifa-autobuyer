@@ -2,20 +2,46 @@ import React, { PropTypes, Component } from 'react';
 import { find } from 'lodash/collection';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerCard from './PlayerCard';
+import { findPrice } from '../utils/ApiUtil';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
 
 class PlayerDetails extends Component {
+  constructor(props) {
+    super(props);
+    this.player = find(props.playerList, { id: props.params.id });
+    this.state = {
+      lowest: '',
+      total: ''
+    };
+  }
+
+  componentDidMount() {
+    this.updatePrice();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.player = find(nextProps.playerList, { id: nextProps.params.id });
+    this.updatePrice();
+  }
+
+  updatePrice() {
+    this.setState({ lowest: '', total: '' });
+    findPrice(this.player.id).then((result) => {
+      this.setState(result);
+    });
+  }
+
   render() {
-    const player = find(this.props.playerList, { id: this.props.params.id });
     return (
       <div className="details">
-        <PlayerDetailsHeader player={player} />
+        <PlayerDetailsHeader player={this.player} updatePrice={this.updatePrice.bind(this)} />
         <div className="details-panel home">
           <div className="content">
             <div className="full">
-              <PlayerCard player={player} />
+              <PlayerCard player={this.player} />
+              {this.state.lowest}
             </div>
           </div>
         </div>

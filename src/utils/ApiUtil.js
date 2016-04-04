@@ -2,20 +2,24 @@ import FutApi from 'fut-api';
 import fs from 'fs';
 import path from 'path';
 import electron from 'electron';
+import Promise from 'bluebird';
 const remote = electron.remote;
 const app = remote.app;
 
 const apiClient = {};
+let lastUsername;
 
 export default {
   getApi(username) {
     if (apiClient[username] === undefined) {
-      apiClient[username] = new FutApi({
+      const api = new FutApi({
         saveCookie: true,
         saveCookiePath: path.join(app.getPath('userData'), username),
         loadCookieFromSavePath: true
       });
+      apiClient[username] = Promise.promisifyAll(api);
     }
+    lastUsername = username;
     return apiClient[username];
   },
   loadAccount() {
@@ -34,5 +38,39 @@ export default {
   },
   saveAccount(account) {
     fs.writeFileSync(path.join(app.getPath('userData'), 'account'), JSON.stringify(account));
+  },
+  findPrice: function findPrice(id, buy = 0, num = 0) {
+    const api = apiClient[lastUsername];
+    let lowest = buy;
+    let total = num;
+    return new Promise((resolve) => {
+      const filter = { definitionId: id, num: 50 };
+      if (buy) {
+        filter.maxb = buy;
+      }
+      api.searchAsync(filter)
+        .then((response) => {
+          const prices = response.auctionInfo.map((i) => i.buyNowPrice);
+          if (prices.length) {
+            lowest = Math.min(...prices);
+            prices.filter((i) => i.buyNowPrice === lowest);
+            total = prices.length;
+            // If we have 50 of the same result, go one lower
+            if (total === 50) {
+              lowest = FutApi.calculateNextLowerPrice(lowest);
+            }
+          }
+          let recurse = false;
+          if (buy === 0 || lowest < buy) {
+            recurse = true;
+          }
+          resolve(recurse);
+        });
+    }).then((recurse) => {
+      if (recurse) {
+        return findPrice(id, lowest, total);
+      }
+      return { lowest, total };
+    });
   }
 };
