@@ -23,9 +23,9 @@ app.on('ready', () => {
   const mainWindow = new BrowserWindow({
     width: size.width || 1080,
     height: size.height || 680,
-    'min-width': os.platform() === 'win32' ? 400 : 700,
-    'min-height': os.platform() === 'win32' ? 260 : 500,
-    'standard-window': false,
+    minWidth: os.platform() === 'win32' ? 400 : 700,
+    minHeight: os.platform() === 'win32' ? 260 : 500,
+    standardWindow: false,
     resizable: true,
     frame: false,
     show: false,
