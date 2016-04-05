@@ -1,6 +1,7 @@
-import util from './utils/Util';
 import electron from 'electron';
 const remote = electron.remote;
+import util from './utils/Util';
+import metrics from './utils/MetricsUtil';
 import shell from 'shell';
 import { hashHistory } from 'react-router';
 
@@ -15,6 +16,9 @@ export default function () {
         {
           label: 'About FIFA Autobuyer',
           click() {
+            metrics.track('Opened About', {
+              from: 'menu'
+            });
             hashHistory.push('/about');
           },
         },
@@ -25,6 +29,9 @@ export default function () {
           label: 'Preferences',
           accelerator: `${util.commandOrCtrl()}+,`,
           click() {
+            metrics.track('Opened Preferences', {
+              from: 'menu'
+            });
             hashHistory.push('/preferences');
           },
         },
@@ -150,6 +157,9 @@ export default function () {
         {
           label: 'Report Issue or Suggest Feedback',
           click() {
+            metrics.track('Opened Issue Reporter', {
+              from: 'menu'
+            });
             shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues/new');
           },
         },

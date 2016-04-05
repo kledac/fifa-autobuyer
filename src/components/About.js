@@ -1,5 +1,6 @@
 import React, { PropTypes, Component } from 'react';
 import utils from '../utils/Util';
+import metrics from '../utils/MetricsUtil';
 
 let packages;
 try {
@@ -11,6 +12,7 @@ try {
 class About extends Component {
   handleGoBackClick() {
     this.context.router.goBack();
+    metrics.track('Went Back From About');
   }
   render() {
     return (

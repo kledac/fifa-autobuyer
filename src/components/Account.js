@@ -3,6 +3,7 @@ import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import RetinaImage from 'react-retina-image';
 import Header from './Header';
+import metrics from '../utils/MetricsUtil';
 import { getApi } from '../utils/ApiUtil';
 import validator from 'validator';
 import shell from 'shell';
@@ -109,12 +110,15 @@ class Account extends Component {
           (next) => {
             this.setState({ twoFactor: true, loading: false });
             this.next = next;
+            metrics.track('Two Factor Authentication Required');
           }
         );
+        metrics.track('Successful Login');
         this.props.saveAccount(this.state);
         const creditResponse = await apiClient.getCreditsAsync();
         this.setState({ twoFactor: false, loading: false });
         this.props.setCredits(creditResponse.credits);
+        metrics.track('Fetched Credits');
         this.context.router.push('/players');
       }
     }

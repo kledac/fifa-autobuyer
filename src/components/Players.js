@@ -2,6 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import PlayerListItem from './PlayerListItem';
 import { Link } from 'react-router';
 import Header from './Header';
+import metrics from '../utils/MetricsUtil';
 import shell from 'shell';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -35,10 +36,16 @@ class Players extends Component {
   }
 
   handleClickPlayerDatabase() {
+    metrics.track('Opened Player Database', {
+      from: 'app'
+    });
     shell.openExternal('https://www.easports.com/fifa/ultimate-team/fut/database');
   }
 
   handleClickReportIssue() {
+    metrics.track('Opened Issue Reporter', {
+      from: 'app'
+    });
     shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues/new');
   }
 

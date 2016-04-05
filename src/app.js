@@ -11,13 +11,21 @@ import { Router, hashHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import routes from './routes';
 import configureStore from './store/configureStore';
-
 import template from './menutemplate';
 import webUtil from './utils/WebUtil';
+import metrics from './utils/MetricsUtil';
 
 webUtil.addWindowSizeSaving();
 webUtil.addLiveReload();
 webUtil.disableGlobalBackspace();
+
+Menu.setApplicationMenu(Menu.buildFromTemplate(template()));
+
+metrics.track('Started App');
+metrics.track('app heartbeat');
+setInterval(() => {
+  metrics.track('app heartbeat');
+}, 14400000);
 
 const store = configureStore();
 const history = syncHistoryWithStore(hashHistory, store);
@@ -28,5 +36,3 @@ render(
   </Provider>,
   document.getElementById('app')
 );
-
-Menu.setApplicationMenu(Menu.buildFromTemplate(template()));
