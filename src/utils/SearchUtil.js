@@ -2,6 +2,7 @@ import request from 'request';
 import { saveResults } from '../actions/players';
 import fs from 'fs';
 import path from 'path';
+import metrics from '../utils/MetricsUtil';
 import electron from 'electron';
 const remote = electron.remote;
 const app = remote.app;
@@ -24,6 +25,10 @@ export default {
       (error, response, body) => {
         const data = JSON.parse(body);
         if (response.statusCode === 200) {
+          metrics.track('Player Search', {
+            query,
+            results: data.totalResults
+          });
           dispatch(saveResults(data));
         }
       }
