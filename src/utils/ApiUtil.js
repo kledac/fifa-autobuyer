@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import FutApi from 'fut-api';
 import fs from 'fs';
 import path from 'path';
