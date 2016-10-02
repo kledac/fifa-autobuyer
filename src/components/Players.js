@@ -3,6 +3,7 @@ import PlayerListItem from './PlayerListItem';
 import { Link } from 'react-router';
 import Header from './Header';
 import metrics from '../utils/MetricsUtil';
+import { bid } from '../utils/ApiUtil';
 import shell from 'shell';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -49,6 +50,10 @@ class Players extends Component {
     shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues/new');
   }
 
+  handleClickBid() {
+    bid();
+  }
+
   render() {
     let sidebarHeaderClass = 'sidebar-header';
     if (this.state.sidebarOffset) {
@@ -84,7 +89,7 @@ class Players extends Component {
               <span className="btn-sidebar btn-feedback" onClick={this.handleClickReportIssue}>
                 <span className="icon icon-feedback"></span>
               </span>
-              <span className="btn-sidebar btn-start">
+              <span className="btn-sidebar btn-start" onClick={this.handleClickBid}>
                 <span className="icon icon-start"></span>
               </span>
             </section>

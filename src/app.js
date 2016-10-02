@@ -14,6 +14,7 @@ import configureStore from './store/configureStore';
 import template from './menutemplate';
 import webUtil from './utils/WebUtil';
 import metrics from './utils/MetricsUtil';
+import { subscribe } from './utils/ApiUtil';
 
 webUtil.addWindowSizeSaving();
 webUtil.addLiveReload();
@@ -28,6 +29,11 @@ setInterval(() => {
 }, 14400000);
 
 const store = configureStore();
+
+store.subscribe(() => {
+  subscribe(store.getState());
+});
+
 const history = syncHistoryWithStore(hashHistory, store);
 
 render(
