@@ -13,6 +13,7 @@ class PlayerSearch extends Component {
     super(props);
     const results = this.props.results || {};
     const { query } = this.props.location || { query: {} };
+    Promise.config({ cancellation: true });
     this.state = {
       query: '',
       filter: query.filter || 'players',
@@ -62,10 +63,10 @@ class PlayerSearch extends Component {
 
     if (query !== '') {
       this.setState({ loading: true });
-      _searchPromise = Promise.delay(200).cancellable().then(() => {
+      _searchPromise = Promise.delay(200).then(() => {
         _searchPromise = null;
         this.props.search(query, page);
-      }).catch(Promise.CancellationError, () => {});
+      }).catch(() => {});
     }
   }
 

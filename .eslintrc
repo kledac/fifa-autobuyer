@@ -11,10 +11,10 @@
     "consistent-return": "off",
     "comma-dangle": "off",
     "no-use-before-define": "off",
-    "import/no-unresolved": ["error", { "ignore": ["electron"] }],
+    # "import/no-unresolved": ["error", { "ignore": ["electron"] }],
     "import/no-extraneous-dependencies": "off",
     "react/jsx-no-bind": "off",
-    "react/jsx-filename-extension": ["error", { "extensions": [".js", ".jsx"] }],
+    # "react/jsx-filename-extension": ["error", { "extensions": [".js", ".jsx"] }],
     "react/prefer-stateless-function": "off",
     "generator-star-spacing": "off"
   },
