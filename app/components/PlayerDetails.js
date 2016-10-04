@@ -1,7 +1,6 @@
 import React, { PropTypes, Component } from 'react';
 import { find } from 'lodash/collection';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
-import PlayerCard from './PlayerCard';
 import PlayerDetailTable from './PlayerDetailTable';
 import { findPrice } from '../utils/ApiUtil';
 import { bindActionCreators } from 'redux';
@@ -35,14 +34,12 @@ class PlayerDetails extends Component {
   }
 
   render() {
-    console.log(this.player);
     return (
       <div className="details">
         <PlayerDetailsHeader player={this.player} updatePrice={this.updatePrice.bind(this)} />
         <div className="details-panel home">
           <div className="content">
             <div className="full">
-              <PlayerCard player={this.player} />
               {this.state.lowest}
               <PlayerDetailTable player={this.player} />
             </div>
