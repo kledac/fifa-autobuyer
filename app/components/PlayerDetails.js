@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerDetailTable from './PlayerDetailTable';
-import { findPrice } from '../utils/ApiUtil';
+// import { findPrice } from '../utils/ApiUtil';
 import * as PlayerActions from '../actions/players';
 
 class PlayerDetails extends Component {
