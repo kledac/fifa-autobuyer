@@ -19,18 +19,18 @@ class About extends Component {
       <div className="preferences">
         <div className="about-content">
           <a onClick={this.handleGoBackClick.bind(this)}>Go Back</a>
-            <div className="items">
-              <div className="item">
-                <h3>FIFA Autobuyer</h3>
-                <p>{packages.description}</p>
-              </div>
+          <div className="items">
+            <div className="item">
+              <h3>FIFA Autobuyer</h3>
+              <p>{packages.description}</p>
             </div>
-            <div className="items">
-              <div className="item">
-                <h4>Version</h4>
-                <p>{packages.version}</p>
-              </div>
+          </div>
+          <div className="items">
+            <div className="item">
+              <h4>Version</h4>
+              <p>{packages.version}</p>
             </div>
+          </div>
           <div className="items">
             <div className="item">
               <h4>Author</h4>

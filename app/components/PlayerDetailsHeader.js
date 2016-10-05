@@ -31,13 +31,13 @@ class PlayerDetailsHeader extends Component {
           <div className="details-header-actions">
             <div className="action" onClick={this.props.updatePrice}>
               <div className="action-icon">
-                <span className="icon icon-restart"></span>
+                <span className="icon icon-restart" />
               </div>
               <div className="btn-label">UPDATE</div>
             </div>
             <div className="action" onClick={this.handleClickPlayerLink.bind(this)}>
               <div className="action-icon">
-                <span className="icon icon-open-external"></span>
+                <span className="icon icon-open-external" />
               </div>
               <div className="btn-label">EA BIO</div>
             </div>
@@ -53,7 +53,11 @@ class PlayerDetailsHeader extends Component {
 }
 
 PlayerDetailsHeader.propTypes = {
-  player: PropTypes.object.isRequired,
+  player: PropTypes.shape({
+    id: PropTypes.int,
+    baseId: PropTypes.int,
+    name: PropTypes.string
+  }),
   updatePrice: PropTypes.func.isRequired
 };
 

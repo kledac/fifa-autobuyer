@@ -1,9 +1,10 @@
+import electron from 'electron';
 import request from 'request';
-import { saveResults } from '../actions/players';
 import fs from 'fs';
 import path from 'path';
 import metrics from '../utils/MetricsUtil';
-import electron from 'electron';
+import { saveResults } from '../actions/players';
+
 const remote = electron.remote;
 const app = remote.app;
 

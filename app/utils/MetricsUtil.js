@@ -3,9 +3,9 @@ import Mixpanel from 'mixpanel';
 import uuid from 'node-uuid';
 import fs from 'fs';
 import path from 'path';
-import util from './Util';
 import os from 'os';
 import osxRelease from 'osx-release';
+import util from './Util';
 
 let settings;
 try {

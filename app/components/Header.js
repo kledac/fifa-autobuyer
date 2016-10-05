@@ -1,15 +1,16 @@
-import React, { Component, PropTypes } from 'react';
-import RetinaImage from 'react-retina-image';
-import util from '../utils/Util';
 import electron from 'electron';
-const remote = electron.remote;
-const Menu = remote.Menu;
-const MenuItem = remote.MenuItem;
+import React, { Component, PropTypes } from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import RetinaImage from 'react-retina-image';
+import util from '../utils/Util';
 import * as AccountActions from '../actions/account';
+
+const remote = electron.remote;
+const Menu = remote.Menu;
+const MenuItem = remote.MenuItem;
 
 class Header extends Component {
   constructor(props) {
@@ -94,21 +95,21 @@ class Header extends Component {
       });
       buttons = (
         <div className="windows-buttons">
-        <div className="windows-button button-minimize enabled" onClick={this.handleMinimize.bind(this)}>
-          <div className="icon"></div>
-        </div>
-        <div className={fullscreenClass} onClick={this.handleFullscreen.bind(this)}>
-          <div className="icon"></div>
-        </div>
-        <div className="windows-button button-close enabled" onClick={this.handleClose.bind(this)}></div>
+          <div className="windows-button button-minimize enabled" onClick={this.handleMinimize.bind(this)}>
+            <div className="icon" />
+          </div>
+          <div className={fullscreenClass} onClick={this.handleFullscreen.bind(this)}>
+            <div className="icon" />
+          </div>
+          <div className="windows-button button-close enabled" onClick={this.handleClose.bind(this)} />
         </div>
       );
     } else {
       buttons = (
         <div className="buttons">
-        <div className="button button-close enabled" onClick={this.handleClose.bind(this)}></div>
-        <div className="button button-minimize enabled" onClick={this.handleMinimize.bind(this)}></div>
-        <div className="button button-fullscreen enabled" onClick={this.handleFullscreen.bind(this)}></div>
+          <div className="button button-close enabled" onClick={this.handleClose.bind(this)} />
+          <div className="button button-minimize enabled" onClick={this.handleMinimize.bind(this)} />
+          <div className="button button-fullscreen enabled" onClick={this.handleFullscreen.bind(this)} />
         </div>
       );
     }
@@ -126,11 +127,11 @@ class Header extends Component {
           {util.isWindows() ? this.renderLogo() : this.renderWindowButtons()}
           <div className="login-wrapper">
             <div className="login no-drag" onClick={this.handleUserClick.bind(this)}>
-              <span className="icon icon-user"></span>
-                <span className="text">
-                  {numeral(this.props.credits).format('0,0')}
-                </span>
-                <RetinaImage src="images/userdropdown.png" />
+              <span className="icon icon-user" />
+              <span className="text">
+                {numeral(this.props.credits).format('0,0')}
+              </span>
+              <RetinaImage src="images/userdropdown.png" />
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
+import { isEmpty } from 'lodash';
 import { SET_CREDITS, SAVE_ACCOUNT } from '../actions/account';
 import { saveAccount, loadAccount } from '../utils/ApiUtil';
-import { isEmpty } from 'lodash';
 
 export function account(state = {}, action) {
   let nextState;
@@ -27,3 +27,5 @@ export function account(state = {}, action) {
       return nextState;
   }
 }
+
+export { account as default };
