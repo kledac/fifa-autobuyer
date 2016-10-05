@@ -3,9 +3,8 @@ import { find } from 'lodash/collection';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
-import PlayerCard from './PlayerCard';
 import PlayerDetailTable from './PlayerDetailTable';
-import { findPrice } from '../utils/ApiUtil';
+// import { findPrice } from '../utils/ApiUtil';
 import * as PlayerActions from '../actions/players';
 
 class PlayerDetails extends Component {
@@ -41,7 +40,6 @@ class PlayerDetails extends Component {
         <div className="details-panel home">
           <div className="content">
             <div className="full">
-              <PlayerCard player={this.player} />
               {this.state.lowest}
               <PlayerDetailTable player={this.player} />
             </div>
