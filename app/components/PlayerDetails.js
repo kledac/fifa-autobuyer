@@ -1,11 +1,11 @@
 import React, { PropTypes, Component } from 'react';
 import { find } from 'lodash/collection';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerCard from './PlayerCard';
 import PlayerDetailTable from './PlayerDetailTable';
 import { findPrice } from '../utils/ApiUtil';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
 import * as PlayerActions from '../actions/players';
 
 class PlayerDetails extends Component {
@@ -29,13 +29,12 @@ class PlayerDetails extends Component {
 
   updatePrice() {
     this.setState({ lowest: '', total: '' });
-    findPrice(this.player.id).then((result) => {
-      this.setState(result);
-    });
+    // findPrice(this.player.id).then(result => {
+    //   this.setState(result);
+    // });
   }
 
   render() {
-    console.log(this.player);
     return (
       <div className="details">
         <PlayerDetailsHeader player={this.player} updatePrice={this.updatePrice.bind(this)} />
@@ -54,8 +53,10 @@ class PlayerDetails extends Component {
 }
 
 PlayerDetails.propTypes = {
-  params: PropTypes.object.isRequired,
-  playerList: PropTypes.array.isRequired
+  params: PropTypes.shape({
+    id: PropTypes.int
+  }),
+  playerList: PropTypes.arrayOf(PropTypes.shape({}))
 };
 
 PlayerDetails.contextTypes = {

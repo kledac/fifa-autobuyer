@@ -1,12 +1,12 @@
 import React, { PropTypes, Component } from 'react';
-import PlayerCard from './SmallPlayerCard';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as PlayerActions from '../actions/players';
 import Promise from 'bluebird';
 import classNames from 'classnames';
+import PlayerCard from './SmallPlayerCard';
+import * as PlayerActions from '../actions/players';
 
-let _searchPromise = null;
+let searchPromise = null;
 
 class PlayerSearch extends Component {
   constructor(props) {
@@ -26,7 +26,7 @@ class PlayerSearch extends Component {
   }
 
   componentDidMount() {
-    this.refs.searchInput.focus();
+    this.searchInput.focus();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -50,21 +50,22 @@ class PlayerSearch extends Component {
   }
 
   componentWillUnmount() {
-    if (_searchPromise) {
-      _searchPromise.cancel();
+    if (searchPromise) {
+      searchPromise.cancel();
+      searchPromise = null;
     }
   }
 
   search(query, page = 1) {
-    if (_searchPromise) {
-      _searchPromise.cancel();
-      _searchPromise = null;
+    if (searchPromise) {
+      searchPromise.cancel();
+      searchPromise = null;
     }
 
     if (query !== '') {
       this.setState({ loading: true });
-      _searchPromise = Promise.delay(200).then(() => {
-        _searchPromise = null;
+      searchPromise = Promise.delay(200).then(() => {
+        searchPromise = null;
         this.props.search(query, page);
       }).catch(() => {});
     }
@@ -109,7 +110,7 @@ class PlayerSearch extends Component {
           </a>
         </li>
       ));
-      for (previousPage; previousPage < this.state.currentPage; previousPage++) {
+      for (previousPage; previousPage < this.state.currentPage; previousPage += 1) {
         previous.push((
           <li><a href="" onClick={this.handlePage.bind(this, previousPage)}>{previousPage}</a></li>
         ));
@@ -117,7 +118,7 @@ class PlayerSearch extends Component {
     }
     if (this.state.currentPage < this.state.totalPages) {
       let nextPage = this.state.currentPage + 1;
-      for (nextPage; nextPage < this.state.totalPages; nextPage++) {
+      for (nextPage; nextPage < this.state.totalPages; nextPage += 1) {
         next.push((
           <li><a href="" onClick={this.handlePage.bind(this, nextPage)}>{nextPage}</a></li>
         ));
@@ -161,7 +162,7 @@ class PlayerSearch extends Component {
         <div className="no-results">
           <div className="loader">
             <h2>Loading Players</h2>
-            <div className="spinner la-ball-clip-rotate la-dark la-lg"><div></div></div>
+            <div className="spinner la-ball-clip-rotate la-dark la-lg"><div /></div>
           </div>
         </div>
       );
@@ -189,20 +190,18 @@ class PlayerSearch extends Component {
           {playerResults}
         </div>
       );
+    } else if (this.state.query.length) {
+      results = (
+        <div className="no-results">
+          <h2>Cannot find a matching player.</h2>
+        </div>
+      );
     } else {
-      if (this.state.query.length) {
-        results = (
-          <div className="no-results">
-            <h2>Cannot find a matching player.</h2>
-          </div>
-        );
-      } else {
-        results = (
-          <div className="no-results">
-            <h2>Search for players above.</h2>
-          </div>
-        );
-      }
+      results = (
+        <div className="no-results">
+          <h2>Search for players above.</h2>
+        </div>
+      );
     }
 
     const loadingClasses = classNames({
@@ -229,16 +228,18 @@ class PlayerSearch extends Component {
           <div className="new-container-header">
             <div className="search">
               <div className="search-bar">
-                <input type="search" ref="searchInput" className="form-control"
+                <input
+                  type="search" ref={searchInput => (this.searchInput = searchInput)} className="form-control"
                   placeholder="Search for Players" disabled={searchDisabled} onChange={this.handleChange.bind(this)}
                 />
-                <div className={magnifierClasses}></div>
-                <div className={loadingClasses}><div></div></div>
+                <div className={magnifierClasses} />
+                <div className={loadingClasses}><div /></div>
               </div>
             </div>
             <div className="results-filters">
               <span className="results-filter results-filter-title">FILTER BY</span>
-              <span className={`results-filter results-all tab ${filter === 'players' ? 'active' : ''}`}
+              <span
+                className={`results-filter results-all tab ${filter === 'players' ? 'active' : ''}`}
                 onClick={this.handleFilter.bind(this, 'players')}
               >Players</span>
             </div>
@@ -256,10 +257,9 @@ class PlayerSearch extends Component {
 }
 
 PlayerSearch.propTypes = {
-  saveResults: PropTypes.func.isRequired,
   search: PropTypes.func.isRequired,
-  results: PropTypes.object.isRequired,
-  location: PropTypes.object.isRequired
+  results: PropTypes.shape({}),
+  location: PropTypes.shape({})
 };
 
 PlayerSearch.contextTypes = {

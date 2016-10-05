@@ -30,50 +30,50 @@ class SmallPlayerCard extends Component {
         <h2 className="ut-item_heading ut-item_heading--main" style={{ textIndent: '0px' }}>{player.name}</h2>
         <div className="ut-item_view ut-item_view0 ut-item_view--summary">
           <table className="ut-item_attr-data">
-          <tbody>
-            <tr className="ut-item_attr-data-row">
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
-                {player.attributes[0].value}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
-                {player.attributes[0].name.replace(/fut\.attribute\./, '')}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
-                {player.attributes[3].value}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
-                {player.attributes[3].name.replace(/fut\.attribute\./, '')}
-              </td>
-            </tr>
-            <tr className="ut-item_attr-data-row">
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
-                {player.attributes[1].value}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
-                {player.attributes[1].name.replace(/fut\.attribute\./, '')}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
-                {player.attributes[4].value}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
-                {player.attributes[4].name.replace(/fut\.attribute\./, '')}
-              </td>
-            </tr>
-            <tr className="ut-item_attr-data-row">
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
-                {player.attributes[2].value}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
-                {player.attributes[2].name.replace(/fut\.attribute\./, '')}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
-                {player.attributes[5].value}
-              </td>
-              <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
-                {player.attributes[5].name.replace(/fut\.attribute\./, '')}
-              </td>
-            </tr>
-          </tbody>
+            <tbody>
+              <tr className="ut-item_attr-data-row">
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
+                  {player.attributes[0].value}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
+                  {player.attributes[0].name.replace(/fut\.attribute\./, '')}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
+                  {player.attributes[3].value}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
+                  {player.attributes[3].name.replace(/fut\.attribute\./, '')}
+                </td>
+              </tr>
+              <tr className="ut-item_attr-data-row">
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
+                  {player.attributes[1].value}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
+                  {player.attributes[1].name.replace(/fut\.attribute\./, '')}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
+                  {player.attributes[4].value}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
+                  {player.attributes[4].name.replace(/fut\.attribute\./, '')}
+                </td>
+              </tr>
+              <tr className="ut-item_attr-data-row">
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
+                  {player.attributes[2].value}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
+                  {player.attributes[2].name.replace(/fut\.attribute\./, '')}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--num">
+                  {player.attributes[5].value}
+                </td>
+                <td className="ut-item_attr-data-cell ut-item_stat ut-item_attr-data-cell ut-item_stat--label">
+                  {player.attributes[5].name.replace(/fut\.attribute\./, '')}
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -82,7 +82,7 @@ class SmallPlayerCard extends Component {
 }
 
 SmallPlayerCard.propTypes = {
-  player: PropTypes.object.isRequired,
+  player: PropTypes.shape({}),
   add: PropTypes.func.isRequired
 };
 

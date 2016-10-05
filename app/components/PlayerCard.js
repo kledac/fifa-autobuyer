@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 
 class PlayerCard extends Component {
   render() {
-    const player = this.props.player;
+    const { player } = this.props;
     let imgsrc;
     if (player.specialImages && player.specialImages.largeTOTWImgUrl) {
       imgsrc = player.specialImages.largeTOTWImgUrl;
@@ -74,7 +74,7 @@ class PlayerCard extends Component {
 }
 
 PlayerCard.propTypes = {
-  player: PropTypes.object
+  player: PropTypes.shape({})
 };
 
 export default PlayerCard;

@@ -1,11 +1,11 @@
 import React, { PropTypes, Component } from 'react';
-import PlayerListItem from './PlayerListItem';
-import { Link } from 'react-router';
-import Header from './Header';
-import metrics from '../utils/MetricsUtil';
 import { shell } from 'electron';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { Link } from 'react-router';
+import PlayerListItem from './PlayerListItem';
+import Header from './Header';
+import metrics from '../utils/MetricsUtil';
 import * as PlayerActions from '../actions/players';
 
 class Players extends Component {
@@ -68,7 +68,8 @@ class Players extends Component {
               <div className="create">
                 <Link to="/players">
                   <span className="btn btn-new btn-action has-icon btn-hollow">
-                    <span className="icon icon-add"></span>Add</span>
+                    <span className="icon icon-add" />Add
+                  </span>
                 </Link>
               </div>
             </section>
@@ -82,10 +83,10 @@ class Players extends Component {
                 <span className="text">Player Database</span>
               </span>
               <span className="btn-sidebar btn-feedback" onClick={this.handleClickReportIssue}>
-                <span className="icon icon-feedback"></span>
+                <span className="icon icon-feedback" />
               </span>
               <span className="btn-sidebar btn-start">
-                <span className="icon icon-start"></span>
+                <span className="icon icon-start" />
               </span>
             </section>
           </div>
@@ -98,7 +99,7 @@ class Players extends Component {
 
 Players.propTypes = {
   children: PropTypes.element.isRequired,
-  playerList: PropTypes.array.isRequired
+  playerList: PropTypes.arrayOf(PropTypes.shape({}))
 };
 
 Players.contextTypes = {

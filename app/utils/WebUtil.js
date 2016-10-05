@@ -1,8 +1,9 @@
 import electron from 'electron';
-const remote = electron.remote;
-const app = remote.app;
 import fs from 'fs';
 import path from 'path';
+
+const remote = electron.remote;
+const app = remote.app;
 
 export default {
   addWindowSizeSaving() {
