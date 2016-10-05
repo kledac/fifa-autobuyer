@@ -114,6 +114,7 @@
     "jquery": "^3.1.1",
     "lodash": "^4.16.3",
     "mixpanel": "github:kitematic/mixpanel-node",
+    "node-persist": "^2.0.2",
     "numeral": "^1.5.3",
     "osx-release": "^2.0.0",
     "postcss": "^5.1.2",

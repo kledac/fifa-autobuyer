@@ -1,51 +1,53 @@
+import { remote } from 'electron';
+import storage from 'node-persist';
 import Fut from 'fut';
 import fs from 'fs';
 import path from 'path';
-import electron from 'electron';
 import Promise from 'bluebird';
 import _ from 'lodash';
-
-const remote = electron.remote;
-const app = remote.app;
 
 const accounts = [];
 let playerList = [];
 let bidId;
 
+export function getApi(email, account) {
+  let account = _.find(accounts, { email });
+  if (account === undefined) {
+    const path = path.join(remote.app.getPath('userData'), email);
+    const api = new Fut({
+      ...account
+    });
+    account = { email, storage, api };
+    accounts.push(account);
+  }
+  return account.api;
+}
+
+export function loadAccount() {
+  let accountInfo = {
+    username: '',
+    password: '',
+    secret: '',
+    platform: ''
+  };
+  try {
+    accountInfo = JSON.parse(fs.readFileSync(path.join(remote.app.getPath('userData'), 'account')));
+  } catch (err) {
+    // continue regardless of error
+  }
+  return accountInfo;
+}
+
+export function saveAccount(account) {
+  fs.writeFileSync(path.join(remote.app.getPath('userData'), 'account'), JSON.stringify(account));
+}
+
 export default {
-  getApi(username) {
-    let account = _.find(accounts, { username });
-    if (account === undefined) {
-      const api = new Fut({
-        saveCookie: true,
-        saveCookiePath: path.join(app.getPath('userData'), username),
-        loadCookieFromSavePath: true
-      });
-      account = { username, api: Promise.promisifyAll(api) };
-      accounts.push(account);
-    }
-    return account.api;
-  },
-  loadAccount() {
-    let accountInfo = {
-      username: '',
-      password: '',
-      secret: '',
-      platform: ''
-    };
-    try {
-      accountInfo = JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'account')));
-    } catch (err) {
-      // continue regardless of error
-    }
-    return accountInfo;
-  },
+  ,
   saveAccount(account) {
-    fs.writeFileSync(path.join(app.getPath('userData'), 'account'), JSON.stringify(account));
+    fs.writeFileSync(path.join(remote.app.getPath('userData'), 'account'), JSON.stringify(account));
   },
-  subscribe(state) {
-    playerList = state.playerList;
-  },
+
   findPrice: async function findPrice(id, buy = 0, num = 0) {
     // Exit if we don't have a connection
     if (!accounts.length) {
