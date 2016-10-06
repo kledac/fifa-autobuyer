@@ -18,7 +18,7 @@ class Header extends Component {
     this.state = {
       fullscreen: false,
       updateAvailable: false,
-      username: null
+      email: null
     };
   }
   componentDidMount() {

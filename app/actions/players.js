@@ -1,6 +1,7 @@
 import { calculateNextLowerPrice } from 'fut';
 import { search as playerSearch } from '../utils/SearchUtil';
 import metrics from '../utils/MetricsUtil';
+import { getApi } from '../utils/ApiUtil';
 
 export const SAVE_RESULTS = 'SAVE_RESULTS';
 export const SEARCH_PLAYERS = 'SEARCH_PLAYERS';
@@ -20,8 +21,8 @@ export function search(query, page = 1) {
 
 export function findPrice(id, buy = 0, num = 0) {
   return async (dispatch, getState) => {
-    const { username } = getState().account.active;
-    const api = getApi(username);
+    const { email } = getState().account.active;
+    const api = getApi(email);
     const filter = { definitionId: id, num: 50 };
     if (buy) {
       filter.maxb = buy;
@@ -42,9 +43,9 @@ export function findPrice(id, buy = 0, num = 0) {
     if (buy === 0 || lowest < buy) {
       dispatch(findPrice(id, lowest, total));
     } else {
-      dispatch(setPrice(id, { lowest, total }))
+      dispatch(setPrice(id, { lowest, total }));
     }
-  }
+  };
 }
 
 export function setPrice(id, price) {

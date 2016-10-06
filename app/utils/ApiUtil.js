@@ -1,31 +1,44 @@
 import { remote } from 'electron';
-import storage from 'node-persist';
+import localforage from 'localforage';
 import Fut from 'fut';
 import fs from 'fs';
 import path from 'path';
-import Promise from 'bluebird';
 import _ from 'lodash';
 
-const accounts = [];
+const logins = [];
 let playerList = [];
 let bidId;
 
-export function getApi(email, account) {
-  let account = _.find(accounts, { email });
-  if (account === undefined) {
-    const path = path.join(remote.app.getPath('userData'), email);
-    const api = new Fut({
-      ...account
+export function initApi(account, tfAuthHandler, captchaHandler) {
+  let login = _.find(logins, { email: account.email });
+  if (login === undefined) {
+    const db = localforage.createInstance({
+      name: account.email
     });
-    account = { email, storage, api };
-    accounts.push(account);
+    const api = new Fut({
+      ...account,
+      captchaHandler,
+      tfAuthHandler,
+      // yo can return a simple sync function to save/loadVariable
+      saveVariable: (key, val) => {
+        db.setItem(key, val);
+      },
+      loadVariable: key => db.getItem(key)
+    });
+    login = { email: account.email, db, api };
+    logins.push(login);
   }
-  return account.api;
+  return login.api;
+}
+
+export function getApi(email) {
+  const login = _.find(logins, { email });
+  return login && login.api;
 }
 
 export function loadAccount() {
   let accountInfo = {
-    username: '',
+    email: '',
     password: '',
     secret: '',
     platform: ''
@@ -43,7 +56,6 @@ export function saveAccount(account) {
 }
 
 export default {
-  ,
   saveAccount(account) {
     fs.writeFileSync(path.join(remote.app.getPath('userData'), 'account'), JSON.stringify(account));
   },
