@@ -80,7 +80,7 @@ class PlayerSearch extends Component {
   }
 
   handlePage(page) {
-    const query = this.state.query;
+    const query = this.state.query || '';
     this.search(query, page);
   }
 
@@ -91,7 +91,8 @@ class PlayerSearch extends Component {
 
   render() {
     const filter = this.state.filter;
-    let players = this.state.players;
+    const query = this.state.query || '';
+    let players = this.state.players || [];
 
     let results;
     let paginateResults;
@@ -139,7 +140,7 @@ class PlayerSearch extends Component {
         <span>{this.state.currentPage} <span className="sr-only">(current)</span></span>
       </li>
     );
-    paginateResults = (next.length || previous.length) && (this.state.query !== '') ? (
+    paginateResults = (next.length || previous.length) && (query !== '') ? (
       <nav>
         <ul className="pagination">
           {previous}
@@ -189,7 +190,7 @@ class PlayerSearch extends Component {
           {playerResults}
         </div>
       );
-    } else if (this.state.query.length) {
+    } else if (query.length) {
       results = (
         <div className="no-results">
           <h2>Cannot find a matching player.</h2>

@@ -27,6 +27,9 @@ class PlayerListItem extends Component {
       buttons: ['Remove', 'Cancel']
     }, index => {
       if (index === 0) {
+        if (this.context.router.isActive(`/players/${this.props.player.id}`)) {
+          this.context.router.push('/players');
+        }
         this.props.remove(this.props.player);
       }
     });
@@ -75,9 +78,14 @@ class PlayerListItem extends Component {
 
 PlayerListItem.propTypes = {
   player: PropTypes.shape({
+    id: PropTypes.int,
     name: PropTypes.string
   }),
   remove: PropTypes.func.isRequired
+};
+
+PlayerListItem.contextTypes = {
+  router: PropTypes.object.isRequired
 };
 
 function mapStateToProps() {

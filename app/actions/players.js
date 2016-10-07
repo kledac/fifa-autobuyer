@@ -21,7 +21,8 @@ export function search(query, page = 1) {
 
 export function findPrice(id, buy = 0, num = 0) {
   return async (dispatch, getState) => {
-    const { email } = getState().account.active;
+    console.log(getState());
+    const { email } = getState().account;
     const api = getApi(email);
     const filter = { definitionId: id, num: 50 };
     if (buy) {

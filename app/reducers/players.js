@@ -1,4 +1,5 @@
-import { SAVE_RESULTS, ADD_PLAYER, REMOVE_PLAYER } from '../actions/players';
+import _ from 'lodash';
+import { SAVE_RESULTS, ADD_PLAYER, REMOVE_PLAYER, SET_PRICE } from '../actions/players';
 import { savePlayerList, loadPlayerList } from '../utils/SearchUtil';
 
 export function searchResults(state = {}, action) {
@@ -22,6 +23,11 @@ export function playerList(state = [], action) {
         ...state.slice(0, i),
         ...state.slice(i + 1)
       ];
+      break;
+    }
+    case SET_PRICE: {
+      nextState = _.merge([], state);
+      _.set(_.find(nextState, { id: action.id }), 'price', action.price);
       break;
     }
     default:

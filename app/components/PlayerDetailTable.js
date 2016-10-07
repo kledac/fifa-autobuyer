@@ -5,7 +5,7 @@ class PlayerDetailTable extends Component {
   render() {
     const { player } = this.props;
     let playerName;
-    if (player.commonName) { 
+    if (player.commonName) {
       playerName = player.commonName;
     } else {
       playerName = `${player.firstName} ${player.lastName}`;
@@ -28,7 +28,7 @@ class PlayerDetailTable extends Component {
             <div className="ut-bio-details_group">
               <div className="ut-bio-details_headings">
                 <h2 className="ut-bio-details_header--player-name">{playerName}</h2>
-                <h3 className="ut-bio-details_header--item-type">Rare Gold</h3>
+                <h3 className="ut-bio-details_header--item-type">{player.price && player.price.lowest}</h3>
               </div>
               <div className="ut-bio-details_stats ut-grid-view">
                 <div className="ut-grid-view_item">

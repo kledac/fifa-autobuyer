@@ -4,17 +4,12 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerDetailTable from './PlayerDetailTable';
-// import { findPrice } from '../utils/ApiUtil';
 import * as PlayerActions from '../actions/players';
 
 class PlayerDetails extends Component {
   constructor(props) {
     super(props);
     this.player = find(props.playerList, { id: props.params.id });
-    this.state = {
-      lowest: '',
-      total: ''
-    };
   }
 
   componentDidMount() {
@@ -27,10 +22,7 @@ class PlayerDetails extends Component {
   }
 
   updatePrice() {
-    this.setState({ lowest: '', total: '' });
-    // findPrice(this.player.id).then(result => {
-    //   this.setState(result);
-    // });
+    this.props.findPrice(this.player.id);
   }
 
   render() {
@@ -40,7 +32,6 @@ class PlayerDetails extends Component {
         <div className="details-panel home">
           <div className="content">
             <div className="full">
-              {this.state.lowest}
               <PlayerDetailTable player={this.player} />
             </div>
           </div>
@@ -51,6 +42,7 @@ class PlayerDetails extends Component {
 }
 
 PlayerDetails.propTypes = {
+  findPrice: PropTypes.func.isRequired,
   params: PropTypes.shape({
     id: PropTypes.int
   }),
