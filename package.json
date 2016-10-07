@@ -110,7 +110,7 @@
     "electron": "^1.3.4",
     "electron-debug": "^1.0.1",
     "font-awesome": "^4.6.3",
-    "fut": "^0.8.1",
+    "fut": "^0.8.3",
     "jquery": "^3.1.1",
     "localforage": "^1.4.2",
     "lodash": "^4.16.3",

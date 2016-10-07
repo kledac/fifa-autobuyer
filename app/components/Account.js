@@ -97,7 +97,7 @@ class Account extends Component {
     event.preventDefault();
     if (this.next !== undefined) {
       this.setState({ loading: true });
-      this.next(this.state.code);
+      this.next(this.props.account.code);
     } else {
       const errors = this.validate();
       this.setState({ errors });
