@@ -6,10 +6,10 @@ import path from 'path';
 import _ from 'lodash';
 
 const logins = [];
-let playerList = [];
+const playerList = [];
 let bidId;
 
-export function initApi(account, tfAuthHandler, captchaHandler) {
+export function init(account, tfAuthHandler, captchaHandler) {
   let login = _.find(logins, { email: account.email });
   if (login === undefined) {
     const db = localforage.createInstance({

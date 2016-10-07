@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 import RetinaImage from 'react-retina-image';
 import Header from './Header';
 import metrics from '../utils/MetricsUtil';
-import { initApi } from '../utils/ApiUtil';
 import * as AccountActions from '../actions/account';
 
 class Account extends Component {
@@ -15,11 +14,6 @@ class Account extends Component {
     super(props);
     this.next = undefined;
     this.state = {
-      email: props.account.email || '',
-      password: props.account.password || '',
-      secret: props.account.secret || '',
-      platform: props.account.platform || '',
-      code: '',
       twoFactor: false,
       loading: false,
       errors: {}
@@ -104,32 +98,19 @@ class Account extends Component {
 
       if (_.isEmpty(_.omit(errors, ['detail']))) {
         this.setState({ loading: true });
-        try {
-          const apiClient = initApi(
-            this.props.account,
-            // Two factor callback
-            () => {
-              this.setState({ twoFactor: true, loading: false });
-              metrics.track('Two Factor Authentication Required');
-              return new Promise(resolve => {
-                this.next = resolve;
-              });
-            },
-            // Captcha callback
-            () => {}
-          );
-          await apiClient.login();
-          metrics.track('Successful Login');
-          this.props.saveAccount(this.state);
-          const creditResponse = await apiClient.getCredits();
-          this.setState({ twoFactor: false, loading: false });
-          this.props.setCredits(creditResponse.credits);
-          metrics.track('Fetched Credits');
-          this.context.router.push('/players');
-        } catch (e) {
-          this.setState({ twoFactor: false, loading: false, errors: { detail: e.message } });
-          throw e;
-        }
+        this.props.login(
+          this.props.account,
+          // Two factor callback
+          () => {
+            this.setState({ twoFactor: true, loading: false });
+            metrics.track('Two Factor Authentication Required');
+            return new Promise(resolve => {
+              this.next = resolve;
+            });
+          },
+          // Captcha callback
+          () => {}
+        );
       }
     }
   }
@@ -236,8 +217,7 @@ class Account extends Component {
 
 Account.propTypes = {
   setAccountInfo: PropTypes.func.isRequired,
-  setCredits: PropTypes.func.isRequired,
-  saveAccount: PropTypes.func.isRequired,
+  login: PropTypes.func.isRequired,
   account: PropTypes.shape({
     email: PropTypes.string,
     password: PropTypes.string,
