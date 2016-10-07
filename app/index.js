@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { Router, hashHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
+import Promise from 'bluebird';
 import routes from './routes';
 import configureStore from './store/configureStore';
 import webUtil from './utils/WebUtil';
@@ -10,6 +11,7 @@ import metrics from './utils/MetricsUtil';
 
 webUtil.addWindowSizeSaving();
 webUtil.disableGlobalBackspace();
+Promise.config({ cancellation: true });
 
 metrics.track('Started App');
 metrics.track('app heartbeat');

@@ -102,7 +102,7 @@ class Account extends Component {
       const errors = this.validate();
       this.setState({ errors });
 
-      if (_.isEmpty(errors)) {
+      if (_.isEmpty(_.omit(errors, ['detail']))) {
         this.setState({ loading: true });
         try {
           const apiClient = initApi(

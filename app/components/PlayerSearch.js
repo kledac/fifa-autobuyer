@@ -13,7 +13,6 @@ class PlayerSearch extends Component {
     super(props);
     const results = this.props.results || {};
     const { query } = this.props.location || { query: {} };
-    Promise.config({ cancellation: true });
     this.state = {
       query: '',
       filter: query.filter || 'players',
