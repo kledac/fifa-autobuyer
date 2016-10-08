@@ -14,15 +14,19 @@ export function searchResults(state = {}, action) {
 export function playerList(state = [], action) {
   let nextState;
   switch (action.type) {
-    case ADD_PLAYER:
-      nextState = [...state, action.player];
+    case ADD_PLAYER: {
+      nextState = _.merge([], state);
+      if (state.indexOf(action.player) === -1) {
+        nextState.push(action.player);
+      }
       break;
+    }
     case REMOVE_PLAYER: {
       const i = state.indexOf(action.player);
-      nextState = [
+      nextState = _.merge([], [
         ...state.slice(0, i),
         ...state.slice(i + 1)
-      ];
+      ]);
       break;
     }
     case SET_PRICE: {
@@ -32,6 +36,7 @@ export function playerList(state = [], action) {
     }
     default:
       if (!state.length) {
+        // TODO: Move this to initial state in index.js:configureStore()
         nextState = loadPlayerList() || [];
       } else {
         nextState = state;
