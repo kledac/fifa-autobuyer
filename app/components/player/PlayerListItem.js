@@ -1,14 +1,11 @@
 import $ from 'jquery';
 import React, { PropTypes, Component } from 'react';
 import { Link } from 'react-router';
-import electron from 'electron';
+import { remote } from 'electron';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as PlayerActions from '../../actions/players';
-
-const remote = electron.remote;
-const dialog = remote.dialog;
 
 class PlayerListItem extends Component {
   handleItemMouseEnter() {
@@ -22,7 +19,7 @@ class PlayerListItem extends Component {
   handleDeletePlayer(e) {
     e.preventDefault();
     e.stopPropagation();
-    dialog.showMessageBox({
+    remote.dialog.showMessageBox({
       message: `Are you sure you want to remove ${this.props.player.name}?`,
       buttons: ['Remove', 'Cancel']
     }, index => {

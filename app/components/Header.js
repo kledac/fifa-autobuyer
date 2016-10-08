@@ -1,4 +1,4 @@
-import electron from 'electron';
+import { remote } from 'electron';
 import React, { Component, PropTypes } from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
@@ -8,16 +8,12 @@ import RetinaImage from 'react-retina-image';
 import util from '../utils/Util';
 import * as AccountActions from '../actions/account';
 
-const remote = electron.remote;
-const Menu = remote.Menu;
-const MenuItem = remote.MenuItem;
-
 class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
       fullscreen: false,
-      updateAvailable: false,
+      updateAvailable: false, // TODO: implement auto-update
       email: null
     };
   }
@@ -65,9 +61,9 @@ class Header extends Component {
     this.update();
   }
   handleUserClick(e) {
-    const menu = new Menu();
+    const menu = new remote.Menu();
 
-    menu.append(new MenuItem({ label: 'Sign Out', click: this.handleLogoutClick.bind(this) }));
+    menu.append(new remote.MenuItem({ label: 'Sign Out', click: this.handleLogoutClick.bind(this) }));
     menu.popup(
       remote.getCurrentWindow(),
       e.currentTarget.offsetLeft,

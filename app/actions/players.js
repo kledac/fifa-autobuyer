@@ -19,8 +19,6 @@ export function search(query, page = 1) {
       searchReq = null;
     }
 
-    console.log(query);
-
     searchReq = request.get(
       {
         url: `${ENDPOINT}/fut/item?`,

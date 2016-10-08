@@ -14,8 +14,8 @@ class PlayerSearch extends Component {
     super(props);
     const { query } = this.props.location || { query: {} };
     this.state = {
-      query: '',
-      filter: query.filter || 'players',
+      query: '', // TODO: move to redux state
+      filter: query.filter || 'players', // TODO: move to redux state
       loading: false,
       error: false
     };
@@ -252,11 +252,7 @@ class PlayerSearch extends Component {
 
 PlayerSearch.propTypes = {
   search: PropTypes.func.isRequired,
-  results: PropTypes.shape({
-    page: PropTypes.int,
-    totalPages: PropTypes.int,
-    items: PropTypes.arrayOf(PropTypes.shape({}))
-  }),
+  results: PropTypes.shape({}),
   location: PropTypes.shape({})
 };
 
