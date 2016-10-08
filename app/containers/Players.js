@@ -3,6 +3,7 @@ import { shell } from 'electron';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
+import _ from 'lodash';
 import PlayerListItem from '../components/player/PlayerListItem';
 import Header from '../components/Header';
 import metrics from '../utils/MetricsUtil';
@@ -12,15 +13,8 @@ class Players extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      sidebarOffset: 0,
-      players: this.props.playerList || []
+      sidebarOffset: 0
     };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      players: nextProps.playerList
-    });
   }
 
   handleScroll(e) {
@@ -55,8 +49,10 @@ class Players extends Component {
       sidebarHeaderClass += ' sep';
     }
 
-    const players = this.state.players
-      .map(player => <PlayerListItem key={player.id} player={player} />);
+    const players = _.map(
+      _.get(this.props, 'players.list', {}),
+      player => <PlayerListItem key={player.id} player={player} />
+    );
 
     return (
       <div className="containers">
@@ -99,7 +95,7 @@ class Players extends Component {
 
 Players.propTypes = {
   children: PropTypes.element.isRequired,
-  playerList: PropTypes.arrayOf(PropTypes.shape({}))
+  players: PropTypes.shape({})
 };
 
 Players.contextTypes = {
@@ -108,7 +104,7 @@ Players.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    playerList: state.playerList
+    players: state.players
   };
 }
 

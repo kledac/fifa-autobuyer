@@ -19,7 +19,8 @@ setInterval(() => {
   metrics.track('app heartbeat');
 }, 14400000);
 
-const store = configureStore();
+const initialState = JSON.parse(localStorage.getItem('state')) || undefined;
+const store = configureStore(initialState);
 const history = syncHistoryWithStore(hashHistory, store);
 
 render(

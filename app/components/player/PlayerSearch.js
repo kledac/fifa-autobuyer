@@ -3,6 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Promise from 'bluebird';
 import classNames from 'classnames';
+import _ from 'lodash';
 import PlayerCard from './SmallPlayerCard';
 import * as PlayerActions from '../../actions/players';
 
@@ -11,15 +12,11 @@ let searchPromise = null;
 class PlayerSearch extends Component {
   constructor(props) {
     super(props);
-    const results = this.props.results || {};
     const { query } = this.props.location || { query: {} };
     this.state = {
       query: '',
       filter: query.filter || 'players',
       loading: false,
-      players: results.items || [],
-      currentPage: results.page || 0,
-      totalPages: results.totalPages || 0,
       error: false
     };
   }
@@ -28,13 +25,8 @@ class PlayerSearch extends Component {
     this.searchInput.focus();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      loading: false,
-      players: nextProps.results.items,
-      currentPage: nextProps.results.page,
-      totalPages: nextProps.results.totalPages
-    });
+  componentWillReceiveProps() {
+    this.setState({ loading: false });
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -63,7 +55,7 @@ class PlayerSearch extends Component {
 
     if (query !== '') {
       this.setState({ loading: true });
-      searchPromise = Promise.delay(200).then(() => {
+      searchPromise = Promise.delay(500).then(() => {
         searchPromise = null;
         this.props.search(query, page);
       }).catch(() => {});
@@ -92,43 +84,45 @@ class PlayerSearch extends Component {
   render() {
     const filter = this.state.filter;
     const query = this.state.query || '';
-    let players = this.state.players || [];
+    const currentPage = _.get(this.props.results, 'page', 0);
+    const totalPages = _.get(this.props.results, 'totalPages', 0);
+    let players = _.get(this.props.results, 'items', []);
 
     let results;
     let paginateResults;
     const previous = [];
     const next = [];
-    if (this.state.currentPage > 1) {
-      let previousPage = this.state.currentPage - 7;
+    if (currentPage > 1) {
+      let previousPage = currentPage - 7;
       if (previousPage < 1) {
         previousPage = 1;
       }
       previous.push((
-        <li>
+        <li key="page-first">
           <a href="" onClick={this.handlePage.bind(this, 1)} aria-label="First">
             <span aria-hidden="true">&laquo;</span>
           </a>
         </li>
       ));
-      for (previousPage; previousPage < this.state.currentPage; previousPage += 1) {
+      for (previousPage; previousPage < currentPage; previousPage += 1) {
         previous.push((
-          <li><a href="" onClick={this.handlePage.bind(this, previousPage)}>{previousPage}</a></li>
+          <li key={`page-${previousPage}`}><a href="" onClick={this.handlePage.bind(this, previousPage)}>{previousPage}</a></li>
         ));
       }
     }
-    if (this.state.currentPage < this.state.totalPages) {
-      let nextPage = this.state.currentPage + 1;
-      for (nextPage; nextPage < this.state.totalPages; nextPage += 1) {
+    if (currentPage < totalPages) {
+      let nextPage = currentPage + 1;
+      for (nextPage; nextPage < totalPages; nextPage += 1) {
         next.push((
-          <li><a href="" onClick={this.handlePage.bind(this, nextPage)}>{nextPage}</a></li>
+          <li key={`page-${nextPage}`}><a href="" onClick={this.handlePage.bind(this, nextPage)}>{nextPage}</a></li>
         ));
-        if (nextPage > this.state.currentPage + 7) {
+        if (nextPage > currentPage + 7) {
           break;
         }
       }
       next.push((
-        <li>
-          <a href="" onClick={this.handlePage.bind(this, this.state.totalPages)} aria-label="Last">
+        <li key="page-last">
+          <a href="" onClick={this.handlePage.bind(this, totalPages)} aria-label="Last">
             <span aria-hidden="true">&raquo;</span>
           </a>
         </li>
@@ -137,7 +131,7 @@ class PlayerSearch extends Component {
 
     const current = (
       <li className="active">
-        <span>{this.state.currentPage} <span className="sr-only">(current)</span></span>
+        <span>{currentPage} <span className="sr-only">(current)</span></span>
       </li>
     );
     paginateResults = (next.length || previous.length) && (query !== '') ? (
@@ -258,7 +252,11 @@ class PlayerSearch extends Component {
 
 PlayerSearch.propTypes = {
   search: PropTypes.func.isRequired,
-  results: PropTypes.shape({}),
+  results: PropTypes.shape({
+    page: PropTypes.int,
+    totalPages: PropTypes.int,
+    items: PropTypes.arrayOf(PropTypes.shape({}))
+  }),
   location: PropTypes.shape({})
 };
 
@@ -268,7 +266,7 @@ PlayerSearch.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    results: state.searchResults,
+    results: state.players.search,
     location: state.routing.locationBeforeTransitions
   };
 }

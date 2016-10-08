@@ -1,5 +1,4 @@
 import React, { PropTypes, Component } from 'react';
-import { find } from 'lodash/collection';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
@@ -9,7 +8,7 @@ import * as PlayerActions from '../../actions/players';
 class PlayerDetails extends Component {
   constructor(props) {
     super(props);
-    this.player = find(props.playerList, { id: props.params.id });
+    this.player = props.players.list[props.params.id];
   }
 
   componentDidMount() {
@@ -17,7 +16,7 @@ class PlayerDetails extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.player = find(nextProps.playerList, { id: nextProps.params.id });
+    this.player = nextProps.players.list[nextProps.params.id];
     this.updatePrice();
   }
 
@@ -46,7 +45,9 @@ PlayerDetails.propTypes = {
   params: PropTypes.shape({
     id: PropTypes.int
   }),
-  playerList: PropTypes.arrayOf(PropTypes.shape({}))
+  players: PropTypes.shape({
+    list: PropTypes.arrayOf(PropTypes.shape({}))
+  })
 };
 
 PlayerDetails.contextTypes = {
@@ -55,7 +56,7 @@ PlayerDetails.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    playerList: state.playerList
+    players: state.players
   };
 }
 
