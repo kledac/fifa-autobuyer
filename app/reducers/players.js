@@ -20,7 +20,7 @@ export function players(state = {}, action) {
     }
     case SET_PRICE: {
       const nextState = _.merge({}, state);
-      _.set(_.find(nextState.list, { id: action.id }), 'price', action.price);
+      _.set(nextState, `list.${action.id}.price`, action.price);
       return nextState;
     }
     default:
