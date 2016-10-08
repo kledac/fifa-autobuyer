@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import RetinaImage from 'react-retina-image';
-import Header from './Header';
+import Header from '../components/Header';
 import metrics from '../utils/MetricsUtil';
 import * as AccountActions from '../actions/account';
 

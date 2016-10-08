@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import Promise from 'bluebird';
 import classNames from 'classnames';
 import PlayerCard from './SmallPlayerCard';
-import * as PlayerActions from '../actions/players';
+import * as PlayerActions from '../../actions/players';
 
 let searchPromise = null;
 

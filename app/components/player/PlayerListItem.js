@@ -5,7 +5,7 @@ import electron from 'electron';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as PlayerActions from '../actions/players';
+import * as PlayerActions from '../../actions/players';
 
 const remote = electron.remote;
 const dialog = remote.dialog;

@@ -3,8 +3,8 @@ import { shell } from 'electron';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
-import PlayerListItem from './PlayerListItem';
-import Header from './Header';
+import PlayerListItem from '../components/player/PlayerListItem';
+import Header from '../components/Header';
 import metrics from '../utils/MetricsUtil';
 import * as PlayerActions from '../actions/players';
 
@@ -46,7 +46,7 @@ class Players extends Component {
     metrics.track('Opened Issue Reporter', {
       from: 'app'
     });
-    shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues/new');
+    shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues');
   }
 
   render() {
@@ -68,7 +68,7 @@ class Players extends Component {
               <div className="create">
                 <Link to="/players">
                   <span className="btn btn-new btn-action has-icon btn-hollow">
-                    <span className="icon icon-add" />Add
+                    <span className="icon icon-add" />Search
                   </span>
                 </Link>
               </div>
