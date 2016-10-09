@@ -9,7 +9,7 @@ import Header from '../components/Header';
 import metrics from '../utils/MetricsUtil';
 import * as AccountActions from '../actions/account';
 
-class Account extends Component {
+export class Account extends Component {
   constructor(props) {
     super(props);
     this.next = undefined;
@@ -226,7 +226,8 @@ Account.propTypes = {
 };
 
 Account.contextTypes = {
-  router: PropTypes.object.isRequired
+  router: PropTypes.object.isRequired,
+  store: PropTypes.object
 };
 
 function mapStateToProps(state) {

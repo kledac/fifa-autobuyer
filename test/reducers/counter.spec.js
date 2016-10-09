@@ -1,3 +1,4 @@
+/*
 import { expect } from 'chai';
 import counter from '../../app/reducers/counter';
 import { INCREMENT_COUNTER, DECREMENT_COUNTER } from '../../app/actions/counter';
@@ -21,4 +22,4 @@ describe('reducers', () => {
       expect(counter(1, { type: 'unknown' })).to.equal(1);
     });
   });
-});
+});*/

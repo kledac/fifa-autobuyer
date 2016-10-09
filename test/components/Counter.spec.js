@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-expressions */
+/* eslint-disable no-unused-expressions *
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import React from 'react';
@@ -52,4 +52,4 @@ describe('Counter component', () => {
     buttons.at(3).simulate('click');
     expect(actions.incrementAsync.called).to.be.true;
   });
-});
+});*/

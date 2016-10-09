@@ -5,7 +5,8 @@
   "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
   "main": "main.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 mocha --compilers js:babel-register --recursive --require ./test/setup.js test/**/*.spec.js",
+    "test": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 babel-node ./node_modules/istanbul/lib/cli cover node_modules/mocha/bin/_mocha -- --compilers js:babel-register --recursive --require ./test/setup.js test/**/*.spec.js",
+    "test-actions": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 babel-node ./node_modules/istanbul/lib/cli cover node_modules/mocha/bin/_mocha -- --compilers js:babel-register --recursive --require ./test/setup.js test/actions/*.spec.js",
     "test-watch": "npm test -- --watch",
     "test-e2e": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 mocha --compilers js:babel-register --require ./test/setup.js ./test/e2e.js",
     "lint": "eslint app test *.js",
@@ -50,6 +51,7 @@
   "devDependencies": {
     "asar": "^0.12.2",
     "autoprefixer-loader": "^3.2.0",
+    "babel-cli": "^6.16.0",
     "babel-core": "^6.14.0",
     "babel-eslint": "^7.0.0",
     "babel-loader": "^6.2.5",
@@ -84,6 +86,7 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "fbjs-scripts": "^0.7.1",
     "file-loader": "^0.9.0",
+    "istanbul": "^1.0.0-alpha",
     "jsdom": "^9.4.3",
     "json-loader": "^0.5.4",
     "less": "^2.7.1",
