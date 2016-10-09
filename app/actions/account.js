@@ -32,7 +32,7 @@ export function login(account, tfCb = () => {}, captchaCb = () => {}) {
       dispatch(getCredits(account.email));
       dispatch(push('/players'));
     } catch (e) {
-      this.setState({ twoFactor: false, loading: false, errors: { detail: e.message } });
+      // this.setState({ twoFactor: false, loading: false, errors: { detail: e.message } });
       throw e;
     }
   };

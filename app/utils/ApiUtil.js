@@ -11,12 +11,12 @@ export function init(account, tfAuthHandler, captchaHandler) {
       captchaHandler,
       tfAuthHandler,
       saveVariable: (key, val) => {
-        const apiVars = JSON.parse(localStorage.getItem(`${account.email}::apiVars`)) || {};
+        const apiVars = JSON.parse(window.localStorage.getItem(`${account.email}::apiVars`)) || {};
         _.set(apiVars, key, val);
-        localStorage.setItem(`${account.email}::apiVars`, JSON.stringify(apiVars));
+        window.localStorage.setItem(`${account.email}::apiVars`, JSON.stringify(apiVars));
       },
       loadVariable: key => {
-        const apiVars = JSON.parse(localStorage.getItem(`${account.email}::apiVars`)) || {};
+        const apiVars = JSON.parse(window.localStorage.getItem(`${account.email}::apiVars`)) || {};
         return _.get(apiVars, key, false);
       }
     });
