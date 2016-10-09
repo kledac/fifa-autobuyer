@@ -1,3 +1,4 @@
+/*
 import { Application } from 'spectron';
 import { expect } from 'chai';
 import electronPath from 'electron';
@@ -99,4 +100,4 @@ describe('main window', function spec() {
       await client.isExisting(`.${homeStyles.container}`)
     ).to.be.true;
   });
-});
+});*/
