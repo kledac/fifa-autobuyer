@@ -1,4 +1,4 @@
-import assign from 'object-assign';
+import assign from 'lodash/assign';
 import Mixpanel from 'mixpanel';
 import uuid from 'node-uuid';
 import fs from 'fs';
