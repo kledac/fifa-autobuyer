@@ -7,7 +7,7 @@ import persist from '../middleware/persist';
 import rootReducer from '../reducers';
 
 import * as accountActions from '../actions/account';
-import * as playerActions from '../actions/players';
+import * as playerActions from '../actions/player';
 
 const actionCreators = {
   ...accountActions,

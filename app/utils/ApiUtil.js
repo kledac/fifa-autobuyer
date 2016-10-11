@@ -3,11 +3,17 @@ import _ from 'lodash';
 
 const logins = [];
 
-export function init(account, tfAuthHandler, captchaHandler) {
+export function init(account, tfAuthHandler, captchaHandler, rpm = 15) {
+  if (process.env.NODE_ENV === 'test') {
+    // Tests are mocked, so no need to limit
+    rpm = 0; // eslint-disable-line no-param-reassign
+  }
   let login = _.find(logins, { email: account.email });
   if (login === undefined) {
     const api = new Fut({
       ...account,
+      RPM: rpm,
+      minDelay: rpm && (60 / rpm) * 1000,
       captchaHandler,
       tfAuthHandler,
       saveVariable: (key, val) => {

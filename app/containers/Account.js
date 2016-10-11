@@ -5,14 +5,14 @@ import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import RetinaImage from 'react-retina-image';
-import Header from '../components/Header';
+import ConnectedHeader from '../components/Header';
 import metrics from '../utils/MetricsUtil';
 import * as AccountActions from '../actions/account';
 
 export class Account extends Component {
   constructor(props) {
     super(props);
-    this.next = undefined;
+    this.next = props.next || undefined; // only set in tests
     this.state = {
       twoFactor: false,
       loading: false,
@@ -63,7 +63,14 @@ export class Account extends Component {
       errors.platform = 'The platform you play on is required.';
     }
 
-    if (this.state.twoFactor && validator.isEmpty(this.props.account.code || '')) {
+    if (
+      this.state.twoFactor
+      && (
+        !this.props.account.code
+        || this.props.account.code.length !== 6
+        || !validator.isNumeric(this.props.account.code)
+      )
+    ) {
       errors.code = 'Code is invalid.  Must be 6 numbers.';
     }
 
@@ -80,24 +87,22 @@ export class Account extends Component {
     }
   }
 
-  handleBlur() {
+  handleBlur(event) {
     this.setState({ errors: _.omitBy(
       this.validate(),
-      (val, key) => !_.get(this.props.account, `[${key}].length`, 0)
+      (val, key) => key !== event.target.name && !_.get(this.props.account, `[${key}].length`, 0)
     ) });
   }
 
   async handleLogin(event) {
     event.preventDefault();
-    if (this.next !== undefined) {
+    const errors = this.validate();
+    this.setState({ errors });
+    if (_.isEmpty(_.omit(errors, ['detail']))) {
       this.setState({ loading: true });
-      this.next(this.props.account.code);
-    } else {
-      const errors = this.validate();
-      this.setState({ errors });
-
-      if (_.isEmpty(_.omit(errors, ['detail']))) {
-        this.setState({ loading: true });
+      if (this.next !== undefined) {
+        this.next(this.props.account.code);
+      } else {
         this.props.login(
           this.props.account,
           // Two factor callback
@@ -181,7 +186,7 @@ export class Account extends Component {
     }
     return (
       <div className="setup">
-        <Header hideLogin />
+        <ConnectedHeader hideLogin />
         <div className="setup-content">
           {skip}
           <div className="form-section">
@@ -222,7 +227,8 @@ Account.propTypes = {
     secret: PropTypes.string,
     platform: PropTypes.string,
     code: PropTypes.string,
-  })
+  }),
+  next: PropTypes.func // only used for tests
 };
 
 Account.contextTypes = {

@@ -10,9 +10,9 @@ export default ({ getState }) => next => action => {
       // login details
       ..._.pick(_.get(state, 'account', {}), ['email', 'password', 'secret', 'platform'])
     },
-    players: {
+    player: {
       // player list
-      list: _.merge({}, _.get(state, 'players.list', {}))
+      list: _.merge({}, _.get(state, 'player.list', {}))
     }
   }));
 };

@@ -1,13 +1,8 @@
-import { calculateNextLowerPrice } from 'fut';
+import Fut from 'fut';
 import request from 'request';
+import * as types from './playerTypes';
 import metrics from '../utils/MetricsUtil';
 import { getApi } from '../utils/ApiUtil';
-
-export const SAVE_SEARCH_RESULTS = 'SAVE_SEARCH_RESULTS';
-export const SEARCH_PLAYERS = 'SEARCH_PLAYERS';
-export const ADD_PLAYER = 'ADD_PLAYER';
-export const REMOVE_PLAYER = 'REMOVE_PLAYER';
-export const SET_PRICE = 'SET_PRICE';
 
 const ENDPOINT = 'https://www.easports.com/uk/fifa/ultimate-team/api';
 let searchReq = null;
@@ -31,7 +26,7 @@ export function search(query, page = 1) {
             query,
             results: results.totalResults
           });
-          dispatch({ type: SAVE_SEARCH_RESULTS, results });
+          dispatch({ type: types.SAVE_SEARCH_RESULTS, results });
         }
       }
     );
@@ -57,7 +52,7 @@ export function findPrice(id, buy = 0, num = 0) {
         total = prices.length;
         // If we have 50 of the same result, go one lower
         if (total === 50) {
-          lowest = calculateNextLowerPrice(lowest);
+          lowest = Fut.calculateNextLowerPrice(lowest);
         }
       }
       if (buy === 0 || lowest < buy) {
@@ -70,7 +65,7 @@ export function findPrice(id, buy = 0, num = 0) {
 }
 
 export function setPrice(id, price) {
-  return { type: SET_PRICE, id, price };
+  return { type: types.SET_PRICE, id, price };
 }
 
 export function add(player) {
@@ -78,7 +73,7 @@ export function add(player) {
     id: player.id,
     name: player.name
   });
-  return { type: ADD_PLAYER, player };
+  return { type: types.ADD_PLAYER, player };
 }
 
 export function remove(player) {
@@ -86,5 +81,5 @@ export function remove(player) {
     id: player.id,
     name: player.name
   });
-  return { type: REMOVE_PLAYER, player };
+  return { type: types.REMOVE_PLAYER, player };
 }

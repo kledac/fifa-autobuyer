@@ -2,13 +2,11 @@ import { remote } from 'electron';
 import React, { Component, PropTypes } from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
-import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import RetinaImage from 'react-retina-image';
 import util from '../utils/Util';
-import * as AccountActions from '../actions/account';
 
-class Header extends Component {
+export class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -177,8 +175,4 @@ function mapStateToProps(state) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
-  return bindActionCreators(AccountActions, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Header);
+export default connect(mapStateToProps)(Header);

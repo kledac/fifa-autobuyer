@@ -1,16 +1,14 @@
 import { push } from 'react-router-redux';
+import * as types from './accountTypes';
 import { init, getApi } from '../utils/ApiUtil';
 import metrics from '../utils/MetricsUtil';
 
-export const SET_ACCOUNT_INFO = 'account/set/info';
-export const SET_CREDITS = 'account/set/credits';
-
 export function setAccountInfo(key, value) {
-  return { type: SET_ACCOUNT_INFO, key, value };
+  return { type: types.SET_ACCOUNT_INFO, key, value };
 }
 
 export function setCredits(credits) {
-  return { type: SET_CREDITS, credits };
+  return { type: types.SET_CREDITS, credits };
 }
 
 export function getCredits(email) {

@@ -1,22 +1,35 @@
 import React, { PropTypes, Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import _ from 'lodash';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerDetailTable from './PlayerDetailTable';
-import * as PlayerActions from '../../actions/players';
+import * as PlayerActions from '../../actions/player';
 
 class PlayerDetails extends Component {
   constructor(props) {
     super(props);
-    this.player = props.players.list[props.params.id];
+    this.player = props.player.list[props.params.id];
   }
 
   componentDidMount() {
     this.updatePrice();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.player = nextProps.players.list[nextProps.params.id];
+  shouldComponentUpdate(nextProps) {
+    const id = this.props.params.id;
+    const nextId = nextProps.params.id;
+    const price = _.get(this.props.player, `list[${this.props.params.id}].price.lowest`, '');
+    const nextPrice = _.get(nextProps.player, `list[${this.props.params.id}].price.lowest`, '');
+
+    if (nextId === id && nextPrice === price) {
+      return false;
+    }
+    return true;
+  }
+
+  componentWillUpdate(nextProps) {
+    this.player = nextProps.player.list[nextProps.params.id];
     this.updatePrice();
   }
 
@@ -45,8 +58,8 @@ PlayerDetails.propTypes = {
   params: PropTypes.shape({
     id: PropTypes.int
   }),
-  players: PropTypes.shape({
-    list: PropTypes.arrayOf(PropTypes.shape({}))
+  player: PropTypes.shape({
+    list: PropTypes.shape({})
   })
 };
 
@@ -56,7 +69,7 @@ PlayerDetails.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    players: state.players
+    player: state.player
   };
 }
 

@@ -5,7 +5,7 @@ import { remote } from 'electron';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as PlayerActions from '../../actions/players';
+import * as PlayerActions from '../../actions/player';
 
 class PlayerListItem extends Component {
   handleItemMouseEnter() {
@@ -85,12 +85,8 @@ PlayerListItem.contextTypes = {
   router: PropTypes.object.isRequired
 };
 
-function mapStateToProps() {
-  return {};
-}
-
 function mapDispatchToProps(dispatch) {
   return bindActionCreators(PlayerActions, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(PlayerListItem);
+export default connect(() => ({}), mapDispatchToProps)(PlayerListItem);

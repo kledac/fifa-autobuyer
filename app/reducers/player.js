@@ -1,24 +1,26 @@
 import _ from 'lodash';
-import { SAVE_SEARCH_RESULTS, ADD_PLAYER, REMOVE_PLAYER, SET_PRICE } from '../actions/players';
+import * as types from '../actions/playerTypes';
 
-export function players(state = {}, action) {
+export function player(state = {}, action) {
   switch (action.type) {
-    case SAVE_SEARCH_RESULTS: {
+    case types.SAVE_SEARCH_RESULTS: {
       const nextState = _.merge({}, state);
       _.set(nextState, 'search', action.results);
       return nextState;
     }
-    case ADD_PLAYER: {
+    case types.ADD_PLAYER: {
       const nextState = _.merge({}, state);
+      // if we don't have a list yet, make it an object
+      if (!nextState.list) nextState.list = {};
       _.set(nextState, `list.${action.player.id}`, action.player);
       return nextState;
     }
-    case REMOVE_PLAYER: {
+    case types.REMOVE_PLAYER: {
       const nextState = _.merge({}, state);
       _.unset(nextState, `list.${action.player.id}`);
       return nextState;
     }
-    case SET_PRICE: {
+    case types.SET_PRICE: {
       const nextState = _.merge({}, state);
       _.set(nextState, `list.${action.id}.price`, action.price);
       return nextState;
@@ -28,4 +30,4 @@ export function players(state = {}, action) {
   }
 }
 
-export { players as default };
+export { player as default };

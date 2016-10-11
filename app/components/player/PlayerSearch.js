@@ -5,7 +5,7 @@ import Promise from 'bluebird';
 import classNames from 'classnames';
 import _ from 'lodash';
 import PlayerCard from './SmallPlayerCard';
-import * as PlayerActions from '../../actions/players';
+import * as PlayerActions from '../../actions/player';
 
 let searchPromise = null;
 
@@ -262,7 +262,7 @@ PlayerSearch.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    results: state.players.search,
+    results: state.player.search,
     location: state.routing.locationBeforeTransitions
   };
 }
