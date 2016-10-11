@@ -1,4 +1,4 @@
-import assign from 'object-assign';
+import assign from 'lodash/assign';
 import Mixpanel from 'mixpanel';
 import uuid from 'node-uuid';
 import fs from 'fs';
@@ -21,16 +21,16 @@ if (!token) {
 
 const mixpanel = Mixpanel.init(token);
 
-if (localStorage.getItem('metrics.enabled') === null) {
-  localStorage.setItem('metrics.enabled', true);
+if (window.localStorage.getItem('metrics.enabled') === null) {
+  window.localStorage.setItem('metrics.enabled', true);
 }
 
 export default {
   enabled() {
-    return localStorage.getItem('metrics.enabled') === 'true';
+    return window.localStorage.getItem('metrics.enabled') === 'true';
   },
   setEnabled(enabled) {
-    localStorage.setItem('metrics.enabled', !!enabled);
+    window.localStorage.setItem('metrics.enabled', !!enabled);
   },
   track(name, data) {
     if (!name) {
@@ -39,14 +39,14 @@ export default {
 
     const payload = data || {};
 
-    if (localStorage.getItem('metrics.enabled') !== 'true') {
+    if (window.localStorage.getItem('metrics.enabled') !== 'true') {
       return;
     }
 
-    let id = localStorage.getItem('metrics.id');
+    let id = window.localStorage.getItem('metrics.id');
     if (!id) {
       id = uuid.v4();
-      localStorage.setItem('metrics.id', id);
+      window.localStorage.setItem('metrics.id', id);
     }
 
     const osName = os.platform();

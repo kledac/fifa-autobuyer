@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as PlayerActions from '../actions/players';
+import * as PlayerActions from '../../actions/player';
 
 class SmallPlayerCard extends Component {
   handleClick() {
@@ -86,12 +86,8 @@ SmallPlayerCard.propTypes = {
   add: PropTypes.func.isRequired
 };
 
-function mapStateToProps() {
-  return {};
-}
-
 function mapDispatchToProps(dispatch) {
   return bindActionCreators(PlayerActions, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SmallPlayerCard);
+export default connect(() => ({}), mapDispatchToProps)(SmallPlayerCard);

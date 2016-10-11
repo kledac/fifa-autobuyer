@@ -1,14 +1,11 @@
 import $ from 'jquery';
 import React, { PropTypes, Component } from 'react';
 import { Link } from 'react-router';
-import electron from 'electron';
+import { remote } from 'electron';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as PlayerActions from '../actions/players';
-
-const remote = electron.remote;
-const dialog = remote.dialog;
+import * as PlayerActions from '../../actions/player';
 
 class PlayerListItem extends Component {
   handleItemMouseEnter() {
@@ -22,11 +19,14 @@ class PlayerListItem extends Component {
   handleDeletePlayer(e) {
     e.preventDefault();
     e.stopPropagation();
-    dialog.showMessageBox({
+    remote.dialog.showMessageBox({
       message: `Are you sure you want to remove ${this.props.player.name}?`,
       buttons: ['Remove', 'Cancel']
     }, index => {
       if (index === 0) {
+        if (this.context.router.isActive(`/players/${this.props.player.id}`)) {
+          this.context.router.push('/players');
+        }
         this.props.remove(this.props.player);
       }
     });
@@ -75,17 +75,18 @@ class PlayerListItem extends Component {
 
 PlayerListItem.propTypes = {
   player: PropTypes.shape({
+    id: PropTypes.int,
     name: PropTypes.string
   }),
   remove: PropTypes.func.isRequired
 };
 
-function mapStateToProps() {
-  return {};
-}
+PlayerListItem.contextTypes = {
+  router: PropTypes.object.isRequired
+};
 
 function mapDispatchToProps(dispatch) {
   return bindActionCreators(PlayerActions, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(PlayerListItem);
+export default connect(() => ({}), mapDispatchToProps)(PlayerListItem);

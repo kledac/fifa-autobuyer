@@ -81,11 +81,12 @@ app.on('ready', async () => {
     });
   }
 
+  // TODO: update menu items
   if (process.platform === 'darwin') {
     template = [{
       label: 'Electron',
       submenu: [{
-        label: 'About ElectronReact',
+        label: 'About FIFA 17 Autobuyer',
         selector: 'orderFrontStandardAboutPanel:'
       }, {
         type: 'separator'
@@ -95,7 +96,7 @@ app.on('ready', async () => {
       }, {
         type: 'separator'
       }, {
-        label: 'Hide ElectronReact',
+        label: 'Hide FIFA 17 Autobuyer',
         accelerator: 'Command+H',
         selector: 'hide:'
       }, {
@@ -191,7 +192,7 @@ app.on('ready', async () => {
       submenu: [{
         label: 'Learn More',
         click() {
-          shell.openExternal('http://electron.atom.io');
+          shell.openExternal('https://github.com/hunterjm/fifa-autobuyer');
         }
       }, {
         label: 'Documentation',
@@ -206,7 +207,7 @@ app.on('ready', async () => {
       }, {
         label: 'Search Issues',
         click() {
-          shell.openExternal('https://github.com/atom/electron/issues');
+          shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues');
         }
       }]
     }];
@@ -258,7 +259,7 @@ app.on('ready', async () => {
       submenu: [{
         label: 'Learn More',
         click() {
-          shell.openExternal('http://electron.atom.io');
+          shell.openExternal('https://github.com/hunterjm/fifa-autobuyer');
         }
       }, {
         label: 'Documentation',
@@ -273,7 +274,7 @@ app.on('ready', async () => {
       }, {
         label: 'Search Issues',
         click() {
-          shell.openExternal('https://github.com/atom/electron/issues');
+          shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues');
         }
       }]
     }];

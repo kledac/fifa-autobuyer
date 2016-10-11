@@ -1,17 +1,17 @@
 import React from 'react';
 import { Route, IndexRoute } from 'react-router';
 import App from './containers/App';
-import Account from './components/Account';
-import About from './components/About';
-import Players from './components/Players';
-import PlayerSearch from './components/PlayerSearch';
-import PlayerDetails from './components/PlayerDetails';
+import ConnectedAccount from './containers/Account';
+import About from './containers/About';
+import ConnectedPlayers from './containers/Players';
+import PlayerSearch from './components/player/PlayerSearch';
+import PlayerDetails from './components/player/PlayerDetails';
 
 export default (
   <Route path="/" component={App}>
-    <IndexRoute component={Account} />
+    <IndexRoute component={ConnectedAccount} />
     <Route path="about" component={About} />
-    <Route path="players" component={Players}>
+    <Route path="players" component={ConnectedPlayers}>
       <IndexRoute component={PlayerSearch} />
       <Route path=":id" component={PlayerDetails} />
     </Route>

@@ -1,36 +1,40 @@
 import React, { PropTypes, Component } from 'react';
-import { find } from 'lodash/collection';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import _ from 'lodash';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerDetailTable from './PlayerDetailTable';
-// import { findPrice } from '../utils/ApiUtil';
-import * as PlayerActions from '../actions/players';
+import * as PlayerActions from '../../actions/player';
 
 class PlayerDetails extends Component {
   constructor(props) {
     super(props);
-    this.player = find(props.playerList, { id: props.params.id });
-    this.state = {
-      lowest: '',
-      total: ''
-    };
+    this.player = props.player.list[props.params.id];
   }
 
   componentDidMount() {
     this.updatePrice();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.player = find(nextProps.playerList, { id: nextProps.params.id });
+  shouldComponentUpdate(nextProps) {
+    const id = this.props.params.id;
+    const nextId = nextProps.params.id;
+    const price = _.get(this.props.player, `list[${this.props.params.id}].price.lowest`, '');
+    const nextPrice = _.get(nextProps.player, `list[${this.props.params.id}].price.lowest`, '');
+
+    if (nextId === id && nextPrice === price) {
+      return false;
+    }
+    return true;
+  }
+
+  componentWillUpdate(nextProps) {
+    this.player = nextProps.player.list[nextProps.params.id];
     this.updatePrice();
   }
 
   updatePrice() {
-    this.setState({ lowest: '', total: '' });
-    // findPrice(this.player.id).then(result => {
-    //   this.setState(result);
-    // });
+    this.props.findPrice(this.player.id);
   }
 
   render() {
@@ -40,7 +44,6 @@ class PlayerDetails extends Component {
         <div className="details-panel home">
           <div className="content">
             <div className="full">
-              {this.state.lowest}
               <PlayerDetailTable player={this.player} />
             </div>
           </div>
@@ -51,10 +54,13 @@ class PlayerDetails extends Component {
 }
 
 PlayerDetails.propTypes = {
+  findPrice: PropTypes.func.isRequired,
   params: PropTypes.shape({
     id: PropTypes.int
   }),
-  playerList: PropTypes.arrayOf(PropTypes.shape({}))
+  player: PropTypes.shape({
+    list: PropTypes.shape({})
+  })
 };
 
 PlayerDetails.contextTypes = {
@@ -63,7 +69,7 @@ PlayerDetails.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    playerList: state.playerList
+    player: state.player
   };
 }
 

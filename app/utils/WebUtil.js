@@ -1,14 +1,11 @@
-import electron from 'electron';
+import { remote } from 'electron';
 import fs from 'fs';
 import path from 'path';
-
-const remote = electron.remote;
-const app = remote.app;
 
 export default {
   addWindowSizeSaving() {
     window.addEventListener('resize', () => {
-      fs.writeFileSync(path.join(app.getPath('userData'), 'size'), JSON.stringify({
+      fs.writeFileSync(path.join(remote.app.getPath('userData'), 'size'), JSON.stringify({
         width: window.outerWidth,
         height: window.outerHeight,
       }));

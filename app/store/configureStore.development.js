@@ -3,10 +3,11 @@ import thunk from 'redux-thunk';
 import { hashHistory } from 'react-router';
 import { routerMiddleware, push } from 'react-router-redux';
 import createLogger from 'redux-logger';
+import persist from '../middleware/persist';
 import rootReducer from '../reducers';
 
 import * as accountActions from '../actions/account';
-import * as playerActions from '../actions/players';
+import * as playerActions from '../actions/player';
 
 const actionCreators = {
   ...accountActions,
@@ -22,7 +23,7 @@ const logger = createLogger({
 const router = routerMiddleware(hashHistory);
 
 const enhancer = compose(
-  applyMiddleware(thunk, router, logger),
+  applyMiddleware(thunk, router, logger, persist),
   window.devToolsExtension ?
     window.devToolsExtension({ actionCreators }) :
     noop => noop

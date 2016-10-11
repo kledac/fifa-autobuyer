@@ -3,24 +3,20 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Promise from 'bluebird';
 import classNames from 'classnames';
+import _ from 'lodash';
 import PlayerCard from './SmallPlayerCard';
-import * as PlayerActions from '../actions/players';
+import * as PlayerActions from '../../actions/player';
 
 let searchPromise = null;
 
 class PlayerSearch extends Component {
   constructor(props) {
     super(props);
-    const results = this.props.results || {};
     const { query } = this.props.location || { query: {} };
-    Promise.config({ cancellation: true });
     this.state = {
-      query: '',
-      filter: query.filter || 'players',
+      query: '', // TODO: move to redux state
+      filter: query.filter || 'players', // TODO: move to redux state
       loading: false,
-      players: results.items || [],
-      currentPage: results.page || 0,
-      totalPages: results.totalPages || 0,
       error: false
     };
   }
@@ -29,13 +25,8 @@ class PlayerSearch extends Component {
     this.searchInput.focus();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      loading: false,
-      players: nextProps.results.items,
-      currentPage: nextProps.results.page,
-      totalPages: nextProps.results.totalPages
-    });
+  componentWillReceiveProps() {
+    this.setState({ loading: false });
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -64,7 +55,7 @@ class PlayerSearch extends Component {
 
     if (query !== '') {
       this.setState({ loading: true });
-      searchPromise = Promise.delay(200).then(() => {
+      searchPromise = Promise.delay(500).then(() => {
         searchPromise = null;
         this.props.search(query, page);
       }).catch(() => {});
@@ -81,7 +72,7 @@ class PlayerSearch extends Component {
   }
 
   handlePage(page) {
-    const query = this.state.query;
+    const query = this.state.query || '';
     this.search(query, page);
   }
 
@@ -92,43 +83,46 @@ class PlayerSearch extends Component {
 
   render() {
     const filter = this.state.filter;
-    let players = this.state.players;
+    const query = this.state.query || '';
+    const currentPage = _.get(this.props.results, 'page', 0);
+    const totalPages = _.get(this.props.results, 'totalPages', 0);
+    let players = _.get(this.props.results, 'items', []);
 
     let results;
     let paginateResults;
     const previous = [];
     const next = [];
-    if (this.state.currentPage > 1) {
-      let previousPage = this.state.currentPage - 7;
+    if (currentPage > 1) {
+      let previousPage = currentPage - 7;
       if (previousPage < 1) {
         previousPage = 1;
       }
       previous.push((
-        <li>
+        <li key="page-first">
           <a href="" onClick={this.handlePage.bind(this, 1)} aria-label="First">
             <span aria-hidden="true">&laquo;</span>
           </a>
         </li>
       ));
-      for (previousPage; previousPage < this.state.currentPage; previousPage += 1) {
+      for (previousPage; previousPage < currentPage; previousPage += 1) {
         previous.push((
-          <li><a href="" onClick={this.handlePage.bind(this, previousPage)}>{previousPage}</a></li>
+          <li key={`page-${previousPage}`}><a href="" onClick={this.handlePage.bind(this, previousPage)}>{previousPage}</a></li>
         ));
       }
     }
-    if (this.state.currentPage < this.state.totalPages) {
-      let nextPage = this.state.currentPage + 1;
-      for (nextPage; nextPage < this.state.totalPages; nextPage += 1) {
+    if (currentPage < totalPages) {
+      let nextPage = currentPage + 1;
+      for (nextPage; nextPage < totalPages; nextPage += 1) {
         next.push((
-          <li><a href="" onClick={this.handlePage.bind(this, nextPage)}>{nextPage}</a></li>
+          <li key={`page-${nextPage}`}><a href="" onClick={this.handlePage.bind(this, nextPage)}>{nextPage}</a></li>
         ));
-        if (nextPage > this.state.currentPage + 7) {
+        if (nextPage > currentPage + 7) {
           break;
         }
       }
       next.push((
-        <li>
-          <a href="" onClick={this.handlePage.bind(this, this.state.totalPages)} aria-label="Last">
+        <li key="page-last">
+          <a href="" onClick={this.handlePage.bind(this, totalPages)} aria-label="Last">
             <span aria-hidden="true">&raquo;</span>
           </a>
         </li>
@@ -137,10 +131,10 @@ class PlayerSearch extends Component {
 
     const current = (
       <li className="active">
-        <span>{this.state.currentPage} <span className="sr-only">(current)</span></span>
+        <span>{currentPage} <span className="sr-only">(current)</span></span>
       </li>
     );
-    paginateResults = (next.length || previous.length) && (this.state.query !== '') ? (
+    paginateResults = (next.length || previous.length) && (query !== '') ? (
       <nav>
         <ul className="pagination">
           {previous}
@@ -190,7 +184,7 @@ class PlayerSearch extends Component {
           {playerResults}
         </div>
       );
-    } else if (this.state.query.length) {
+    } else if (query.length) {
       results = (
         <div className="no-results">
           <h2>Cannot find a matching player.</h2>
@@ -268,7 +262,7 @@ PlayerSearch.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    results: state.searchResults,
+    results: state.player.search,
     location: state.routing.locationBeforeTransitions
   };
 }

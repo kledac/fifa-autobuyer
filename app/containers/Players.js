@@ -1,26 +1,18 @@
 import React, { PropTypes, Component } from 'react';
 import { shell } from 'electron';
-import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
-import PlayerListItem from './PlayerListItem';
-import Header from './Header';
+import _ from 'lodash';
+import PlayerListItem from '../components/player/PlayerListItem';
+import ConnectedHeader from '../components/Header';
 import metrics from '../utils/MetricsUtil';
-import * as PlayerActions from '../actions/players';
 
-class Players extends Component {
+export class Players extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      sidebarOffset: 0,
-      players: this.props.playerList || []
+      sidebarOffset: 0
     };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      players: nextProps.playerList
-    });
   }
 
   handleScroll(e) {
@@ -46,7 +38,7 @@ class Players extends Component {
     metrics.track('Opened Issue Reporter', {
       from: 'app'
     });
-    shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues/new');
+    shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues');
   }
 
   render() {
@@ -55,12 +47,14 @@ class Players extends Component {
       sidebarHeaderClass += ' sep';
     }
 
-    const players = this.state.players
-      .map(player => <PlayerListItem key={player.id} player={player} />);
+    const players = _.map(
+      _.get(this.props, 'player.list', {}),
+      player => <PlayerListItem key={player.id} player={player} />
+    );
 
     return (
       <div className="containers">
-        <Header hideLogin={false} />
+        <ConnectedHeader hideLogin={false} />
         <div className="containers-body">
           <div className="sidebar">
             <section className={sidebarHeaderClass}>
@@ -68,7 +62,7 @@ class Players extends Component {
               <div className="create">
                 <Link to="/players">
                   <span className="btn btn-new btn-action has-icon btn-hollow">
-                    <span className="icon icon-add" />Add
+                    <span className="icon icon-add" />Search
                   </span>
                 </Link>
               </div>
@@ -99,7 +93,7 @@ class Players extends Component {
 
 Players.propTypes = {
   children: PropTypes.element.isRequired,
-  playerList: PropTypes.arrayOf(PropTypes.shape({}))
+  player: PropTypes.shape({})
 };
 
 Players.contextTypes = {
@@ -108,12 +102,8 @@ Players.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    playerList: state.playerList
+    player: state.player
   };
 }
 
-function mapDispatchToProps(dispatch) {
-  return bindActionCreators(PlayerActions, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Players);
+export default connect(mapStateToProps)(Players);

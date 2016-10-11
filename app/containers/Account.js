@@ -5,21 +5,15 @@ import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import RetinaImage from 'react-retina-image';
-import Header from './Header';
+import ConnectedHeader from '../components/Header';
 import metrics from '../utils/MetricsUtil';
-import { getApi } from '../utils/ApiUtil';
 import * as AccountActions from '../actions/account';
 
-class Account extends Component {
+export class Account extends Component {
   constructor(props) {
     super(props);
-    this.next = undefined;
+    this.next = props.next || undefined; // only set in tests
     this.state = {
-      username: props.account.username || '',
-      password: props.account.password || '',
-      secret: props.account.secret || '',
-      platform: props.account.platform || '',
-      code: '',
       twoFactor: false,
       loading: false,
       errors: {}
@@ -30,7 +24,7 @@ class Account extends Component {
     if (this.props.account.platform) {
       this.platformSelect.style.color = '#556473';
     } else {
-      this.usernameInput.focus();
+      this.emailInput.focus();
     }
   }
 
@@ -46,30 +40,37 @@ class Account extends Component {
 
   validate() {
     const errors = {};
-    if (!validator.isEmail(this.state.username)) {
-      errors.username = 'Must be an email address';
+    if (!validator.isEmail(this.props.account.email || '')) {
+      errors.email = 'Must be an email address';
     }
 
     // Your password must be 8 - 16 characters,
     // and include at least one lowercase letter,
     // one uppercase letter, and a number
     if (!validator.matches(
-      this.state.password,
+      this.props.account.password || '',
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,16}$/)
     ) {
       errors.password = (<span>Your password must be 8 - 16 characters, and include at least<br />
         one lowercase letter, one uppercase letter, and a number<br /><br /></span>);
     }
 
-    if (validator.isEmpty(this.state.secret)) {
+    if (validator.isEmpty(this.props.account.secret || '')) {
       errors.secret = 'The answer to your secret question is required.';
     }
 
-    if (validator.isEmpty(this.state.platform)) {
+    if (validator.isEmpty(this.props.account.platform || '')) {
       errors.platform = 'The platform you play on is required.';
     }
 
-    if (this.state.twoFactor && validator.isEmpty(this.state.code)) {
+    if (
+      this.state.twoFactor
+      && (
+        !this.props.account.code
+        || this.props.account.code.length !== 6
+        || !validator.isNumeric(this.props.account.code)
+      )
+    ) {
       errors.code = 'Code is invalid.  Must be 6 numbers.';
     }
 
@@ -77,9 +78,7 @@ class Account extends Component {
   }
 
   handleChange(event) {
-    const nextState = {};
-    nextState[event.target.name] = event.target.value;
-    this.setState(nextState);
+    this.props.setAccountInfo(event.target.name, event.target.value);
 
     // Change color back to dark gray on change
     if (event.target.name === 'platform') {
@@ -88,39 +87,35 @@ class Account extends Component {
     }
   }
 
-  handleBlur() {
-    this.setState({ errors: _.omitBy(this.validate(), (val, key) => !this.state[key].length) });
+  handleBlur(event) {
+    this.setState({ errors: _.omitBy(
+      this.validate(),
+      (val, key) => key !== event.target.name && !_.get(this.props.account, `[${key}].length`, 0)
+    ) });
   }
 
-  async handleLogin() {
-    if (this.next !== undefined) {
+  async handleLogin(event) {
+    event.preventDefault();
+    const errors = this.validate();
+    this.setState({ errors });
+    if (_.isEmpty(_.omit(errors, ['detail']))) {
       this.setState({ loading: true });
-      this.next(this.state.code);
-    } else {
-      const errors = this.validate();
-      this.setState({ errors });
-
-      if (_.isEmpty(errors)) {
-        this.setState({ loading: true });
-        const apiClient = getApi(this.state.username);
-        await apiClient.loginAsync(
-          this.state.username,
-          this.state.password,
-          this.state.secret,
-          this.state.platform,
-          next => {
+      if (this.next !== undefined) {
+        this.next(this.props.account.code);
+      } else {
+        this.props.login(
+          this.props.account,
+          // Two factor callback
+          () => {
             this.setState({ twoFactor: true, loading: false });
-            this.next = next;
             metrics.track('Two Factor Authentication Required');
-          }
+            return new Promise(resolve => {
+              this.next = resolve;
+            });
+          },
+          // Captcha callback
+          () => {}
         );
-        metrics.track('Successful Login');
-        this.props.saveAccount(this.state);
-        const creditResponse = await apiClient.getCreditsAsync();
-        this.setState({ twoFactor: false, loading: false });
-        this.props.setCredits(creditResponse.credits);
-        metrics.track('Fetched Credits');
-        this.context.router.push('/players');
       }
     }
   }
@@ -134,6 +129,7 @@ class Account extends Component {
   }
 
   render() {
+    const { email, password, secret, platform, code } = this.props.account;
     const loading = this.state.loading ? <div className="spinner la-ball-clip-rotate la-dark"><div /></div> : null;
     let skip = '';
     if (process.env.NODE_ENV === 'development') {
@@ -148,8 +144,8 @@ class Account extends Component {
       fields = (
         <div key="two-factor">
           <input
-            ref={codeInput => (this.codeInput = codeInput)} maxLength="6" name="code" placeholder="Two Factor Code" defaultValue=""
-            type="text" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
+            ref={codeInput => (this.codeInput = codeInput)} maxLength="6" name="code" placeholder="Two Factor Code"
+            value={code || ''} type="text" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
           <p className="error-message">{this.state.errors.code || 'A code was sent to your email or smartphone'}</p>
         </div>
@@ -158,27 +154,24 @@ class Account extends Component {
       fields = (
         <div key="initial-credentials">
           <input
-            ref={usernameInput => (this.usernameInput = usernameInput)} maxLength="30" name="username" placeholder="Username"
-            defaultValue={this.props.account.username} type="text"
-            onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
+            ref={emailInput => (this.emailInput = emailInput)} maxLength="30" name="email" placeholder="Email"
+            value={email || ''} type="text" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
-          <p className="error-message">{this.state.errors.username}</p>
+          <p className="error-message">{this.state.errors.email}</p>
           <input
             ref={passwordInput => (this.passwordInput = passwordInput)} name="password" placeholder="Password"
-            defaultValue={this.props.account.password} type="password"
-            onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
+            value={password || ''} type="password" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
           <p className="error-message">{this.state.errors.password}</p>
           <a className="link" onClick={this.handleClickForgotPassword}>Forgot your password?</a>
           <input
             ref={secretInput => (this.secretInput = secretInput)} name="secret" placeholder="Secret Question Answer"
-            defaultValue={this.props.account.secret} type="password"
-            onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
+            value={secret || ''} type="password" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
           />
           <p className="error-message">{this.state.errors.secret}</p>
           <select
             ref={platformSelect => (this.platformSelect = platformSelect)} name="platform"
-            defaultValue={this.props.account.platform} onChange={this.handleChange.bind(this)}
+            value={platform || ''} onChange={this.handleChange.bind(this)}
           >
             <option disabled value="">Platform</option>
             <option value="pc">PC</option>
@@ -193,7 +186,7 @@ class Account extends Component {
     }
     return (
       <div className="setup">
-        <Header hideLogin />
+        <ConnectedHeader hideLogin />
         <div className="setup-content">
           {skip}
           <div className="form-section">
@@ -226,18 +219,21 @@ class Account extends Component {
 }
 
 Account.propTypes = {
-  setCredits: PropTypes.func.isRequired,
-  saveAccount: PropTypes.func.isRequired,
+  setAccountInfo: PropTypes.func.isRequired,
+  login: PropTypes.func.isRequired,
   account: PropTypes.shape({
-    username: PropTypes.string,
+    email: PropTypes.string,
     password: PropTypes.string,
     secret: PropTypes.string,
-    platform: PropTypes.string
-  })
+    platform: PropTypes.string,
+    code: PropTypes.string,
+  }),
+  next: PropTypes.func // only used for tests
 };
 
 Account.contextTypes = {
-  router: PropTypes.object.isRequired
+  router: PropTypes.object.isRequired,
+  store: PropTypes.object
 };
 
 function mapStateToProps(state) {

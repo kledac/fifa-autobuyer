@@ -1,24 +1,18 @@
-import electron from 'electron';
+import { remote } from 'electron';
 import React, { Component, PropTypes } from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
-import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import RetinaImage from 'react-retina-image';
 import util from '../utils/Util';
-import * as AccountActions from '../actions/account';
 
-const remote = electron.remote;
-const Menu = remote.Menu;
-const MenuItem = remote.MenuItem;
-
-class Header extends Component {
+export class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
       fullscreen: false,
-      updateAvailable: false,
-      username: null
+      updateAvailable: false, // TODO: implement auto-update
+      email: null
     };
   }
   componentDidMount() {
@@ -65,9 +59,9 @@ class Header extends Component {
     this.update();
   }
   handleUserClick(e) {
-    const menu = new Menu();
+    const menu = new remote.Menu();
 
-    menu.append(new MenuItem({ label: 'Sign Out', click: this.handleLogoutClick.bind(this) }));
+    menu.append(new remote.MenuItem({ label: 'Sign Out', click: this.handleLogoutClick.bind(this) }));
     menu.popup(
       remote.getCurrentWindow(),
       e.currentTarget.offsetLeft,
@@ -181,8 +175,4 @@ function mapStateToProps(state) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
-  return bindActionCreators(AccountActions, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Header);
+export default connect(mapStateToProps)(Header);
