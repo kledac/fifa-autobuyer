@@ -1,5 +1,6 @@
 import Fut from 'fut';
 import request from 'request';
+import Promise from 'bluebird';
 import * as types from './playerTypes';
 import metrics from '../utils/MetricsUtil';
 import { getApi } from '../utils/ApiUtil';
@@ -14,22 +15,29 @@ export function search(query, page = 1) {
       searchReq = null;
     }
 
-    searchReq = request.get(
-      {
-        url: `${ENDPOINT}/fut/item?`,
-        qs: { jsonParamObject: JSON.stringify({ page, name: query }) }
-      },
-      (error, response, body) => {
-        const results = JSON.parse(body);
-        if (response.statusCode === 200) {
-          metrics.track('Player Search', {
-            query,
-            results: results.totalResults
-          });
-          dispatch({ type: types.SAVE_SEARCH_RESULTS, results });
+    return new Promise((resolve, reject) => {
+      searchReq = request.get(
+        {
+          url: `${ENDPOINT}/fut/item?`,
+          qs: { jsonParamObject: JSON.stringify({ page, name: query }) }
+        },
+        (error, response, body) => {
+          if (error) {
+            reject(error);
+          }
+          const json = JSON.parse(body);
+          if (response.statusCode === 200) {
+            metrics.track('Player Search', {
+              query,
+              results: json.totalResults
+            });
+            resolve(json);
+          }
         }
-      }
-    );
+      );
+    }).then(results => {
+      dispatch({ type: types.SAVE_SEARCH_RESULTS, results });
+    });
   };
 }
 
@@ -56,7 +64,7 @@ export function findPrice(id, buy = 0, num = 0) {
         }
       }
       if (buy === 0 || lowest < buy) {
-        dispatch(findPrice(id, lowest, total));
+        await dispatch(findPrice(id, lowest, total));
       } else {
         dispatch(setPrice(id, { lowest, total }));
       }

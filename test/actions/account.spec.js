@@ -16,7 +16,7 @@ const mockStore = configureMockStore(middlewares);
 describe('actions', () => {
   describe('account', () => {
     describe('creators', () => {
-      it('setAccountInfo should create SET_ACCOUNT_INFO action', () => {
+      it('should create SET_ACCOUNT_INFO action when setAccountInfo() is called', () => {
         const key = 'email';
         const value = 'test@test.com';
         expect(actions.setAccountInfo(key, value)).to.eql(
@@ -24,7 +24,7 @@ describe('actions', () => {
         );
       });
 
-      it('setCredits should create SET_CREDITS action', () => {
+      it('should create SET_CREDITS action when setCredits() is called', () => {
         const credits = 1000;
         expect(actions.setCredits(credits)).to.eql(
           { type: types.SET_CREDITS, credits }
@@ -36,9 +36,14 @@ describe('actions', () => {
         nock.cleanAll();
       });
 
-      it('routes to /players when login was success', () => {
+      it('should route to /players when login was success', () => {
         mockLogin();
-        const account = { email, password: 'test', secret: 'test', platform: 'xone' };
+        const account = {
+          email,
+          password: 'Password1',
+          secret: 'test',
+          platform: 'xone'
+        };
         const store = mockStore({ account });
 
         return store.dispatch(actions.login(account))
@@ -50,7 +55,7 @@ describe('actions', () => {
           });
       });
 
-      it('dispatches SET_CREDITS when getCoins is completed', () => {
+      it('should dispatch SET_CREDITS when getCoins is completed', () => {
         // Mock credits response
         const credits = 1000;
         nock('https://utas.external.s3.fut.ea.com')

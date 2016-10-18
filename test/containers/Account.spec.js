@@ -58,9 +58,7 @@ describe('containers', () => {
       inputs.forEach(f => f.simulate('blur'));
 
       const errors = component.state('errors');
-      expect(errors).to.include.keys('email');
-      expect(errors).to.include.keys('password');
-      expect(errors).to.include.keys('secret');
+      expect(errors).to.have.all.keys(['email', 'password', 'secret']);
     });
 
     it('should call login when button is pressed with valid credentials', () => {
@@ -83,10 +81,7 @@ describe('containers', () => {
       expect(buttons).to.have.length(1);
       buttons.simulate('click');
       const errors = component.state('errors');
-      expect(errors).to.include.keys('email');
-      expect(errors).to.include.keys('password');
-      expect(errors).to.include.keys('secret');
-      expect(errors).to.include.keys('platform');
+      expect(errors).to.have.all.keys(['email', 'password', 'secret', 'platform']);
       expect(actions.login.called).to.be.false;
     });
 

@@ -6,7 +6,12 @@ import * as types from '../../app/actions/accountTypes';
 describe('reducers', () => {
   describe('account', () => {
     it('should handle initial state', () => {
-      expect(account(undefined, {})).to.eql({});
+      expect(account(undefined, {})).to.eql({
+        email: '',
+        password: '',
+        secret: '',
+        platform: ''
+      });
     });
 
     it('should handle SET_ACCOUNT_INFO', () => {

@@ -1,7 +1,12 @@
 import _ from 'lodash';
 import * as types from '../actions/playerTypes';
 
-export function player(state = {}, action) {
+const initialState = {
+  search: {},
+  list: {}
+};
+
+export function player(state = initialState, action) {
   switch (action.type) {
     case types.SAVE_SEARCH_RESULTS: {
       const nextState = _.merge({}, state);
@@ -10,8 +15,6 @@ export function player(state = {}, action) {
     }
     case types.ADD_PLAYER: {
       const nextState = _.merge({}, state);
-      // if we don't have a list yet, make it an object
-      if (!nextState.list) nextState.list = {};
       _.set(nextState, `list.${action.player.id}`, action.player);
       return nextState;
     }

@@ -1,7 +1,14 @@
 import _ from 'lodash';
 import * as types from '../actions/accountTypes';
 
-export function account(state = {}, action) {
+const initialState = {
+  email: '',
+  password: '',
+  secret: '',
+  platform: ''
+};
+
+export function account(state = initialState, action) {
   let nextState;
   switch (action.type) {
     case types.SET_ACCOUNT_INFO:
