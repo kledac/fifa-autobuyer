@@ -55,9 +55,6 @@ export class Header extends Component {
       });
     }
   }
-  handleFullscreenHover() {
-    this.update();
-  }
   handleUserClick(e) {
     const menu = new remote.Menu();
 
