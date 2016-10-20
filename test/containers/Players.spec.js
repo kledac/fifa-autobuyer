@@ -5,7 +5,7 @@ import { mount } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { Players } from '../../app/containers/Players';
-import PlayerListItem from '../../app/components/player/PlayerListItem';
+import ConnectedPlayerListItem from '../../app/components/player/PlayerListItem';
 
 const middlewares = [thunk];
 const mockStore = configureMockStore(middlewares);
@@ -41,7 +41,7 @@ function setup(initialState = { account: {} }) {
     feedback: component.find('.btn-feedback'),
     addPlayer: component.find('.btn-new'),
     sidebar: component.find('.sidebar-containers'),
-    playerCards: component.find(PlayerListItem)
+    playerCards: component.find(ConnectedPlayerListItem)
   };
 }
 

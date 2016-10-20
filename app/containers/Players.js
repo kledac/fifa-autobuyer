@@ -3,7 +3,7 @@ import { shell } from 'electron';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
-import PlayerListItem from '../components/player/PlayerListItem';
+import ConnectedPlayerListItem from '../components/player/PlayerListItem';
 import ConnectedHeader from '../components/Header';
 import metrics from '../utils/MetricsUtil';
 
@@ -49,7 +49,7 @@ export class Players extends Component {
 
     const players = _.map(
       _.get(this.props, 'player.list', {}),
-      player => <PlayerListItem key={player.id} player={player} />
+      player => <ConnectedPlayerListItem key={player.id} player={player} />
     );
 
     return (

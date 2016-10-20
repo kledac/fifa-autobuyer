@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as PlayerActions from '../../actions/player';
 
-class PlayerListItem extends Component {
+export class PlayerListItem extends Component {
   handleItemMouseEnter() {
     $(this.node).find('.action').show();
   }
@@ -19,17 +19,26 @@ class PlayerListItem extends Component {
   handleDeletePlayer(e) {
     e.preventDefault();
     e.stopPropagation();
-    remote.dialog.showMessageBox({
-      message: `Are you sure you want to remove ${this.props.player.name}?`,
-      buttons: ['Remove', 'Cancel']
-    }, index => {
-      if (index === 0) {
-        if (this.context.router.isActive(`/players/${this.props.player.id}`)) {
-          this.context.router.push('/players');
+    // Remote should always exist, except in unit tests
+    if (remote) {
+      remote.dialog.showMessageBox({
+        message: `Are you sure you want to remove ${this.props.player.name}?`,
+        buttons: ['Remove', 'Cancel']
+      }, index => {
+        if (index === 0) {
+          this.deletePlayer();
         }
-        this.props.remove(this.props.player);
-      }
-    });
+      });
+    } else {
+      this.deletePlayer();
+    }
+  }
+
+  deletePlayer() {
+    if (this.context.router.isActive(`/players/${this.props.player.id}`)) {
+      this.context.router.push('/players');
+    }
+    this.props.remove(this.props.player);
   }
 
   render() {
