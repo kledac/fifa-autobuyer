@@ -19,7 +19,7 @@ if (!token) {
   token = 'none';
 }
 
-const mixpanel = Mixpanel.init(token);
+export const mixpanel = Mixpanel.init(token);
 
 if (window.localStorage.getItem('metrics.enabled') === null) {
   window.localStorage.setItem('metrics.enabled', true);

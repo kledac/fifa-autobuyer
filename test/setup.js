@@ -9,7 +9,7 @@ window.localStorage = window.sessionStorage = {
     return this[key] || null;
   },
   setItem(key, value) {
-    this[key] = value;
+    this[key] = JSON.stringify(value);
   },
   removeItem(key) {
     this[key] = undefined;
