@@ -5,28 +5,11 @@ import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { PlayerListItem } from '../../../app/components/player/PlayerListItem';
+import player from '../../mocks/player';
 
 const middlewares = [thunk];
 const mockStore = configureMockStore(middlewares);
-const player = {
-  nation: {
-    imageUrls: {
-      small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/flags/html5/24x14/38.png'
-    }
-  },
-  club: {
-    imageUrls: {
-      normal: {
-        small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/clubbadges/html5/normal/24x24/l243.png'
-      }
-    }
-  },
-  position: 'LW',
-  name: 'Cristiano Ronaldo',
-  color: 'rare_gold',
-  id: '20801',
-  rating: 94
-};
+
 spy(PlayerListItem.prototype, 'handleItemMouseEnter');
 spy(PlayerListItem.prototype, 'handleItemMouseLeave');
 

@@ -19,19 +19,14 @@ export class PlayerListItem extends Component {
   handleDeletePlayer(e) {
     e.preventDefault();
     e.stopPropagation();
-    // Remote should always exist, except in unit tests
-    if (remote) {
-      remote.dialog.showMessageBox({
-        message: `Are you sure you want to remove ${this.props.player.name}?`,
-        buttons: ['Remove', 'Cancel']
-      }, index => {
-        if (index === 0) {
-          this.deletePlayer();
-        }
-      });
-    } else {
-      this.deletePlayer();
-    }
+    remote.dialog.showMessageBox({
+      message: `Are you sure you want to remove ${this.props.player.name}?`,
+      buttons: ['Remove', 'Cancel']
+    }, index => {
+      if (index === 0) {
+        this.deletePlayer();
+      }
+    });
   }
 
   deletePlayer() {

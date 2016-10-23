@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as PlayerActions from '../../actions/player';
 
-class SmallPlayerCard extends Component {
+export class SmallPlayerCard extends Component {
   handleClick() {
     this.props.add(this.props.player);
   }

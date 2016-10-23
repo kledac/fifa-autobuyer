@@ -6,7 +6,7 @@ import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerDetailTable from './PlayerDetailTable';
 import * as PlayerActions from '../../actions/player';
 
-class PlayerDetails extends Component {
+export class PlayerDetails extends Component {
   constructor(props) {
     super(props);
     this.player = props.player.list[props.params.id];
@@ -61,10 +61,6 @@ PlayerDetails.propTypes = {
   player: PropTypes.shape({
     list: PropTypes.shape({})
   })
-};
-
-PlayerDetails.contextTypes = {
-  router: PropTypes.object.isRequired
 };
 
 function mapStateToProps(state) {

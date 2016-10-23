@@ -61,8 +61,4 @@ PlayerDetailsHeader.propTypes = {
   updatePrice: PropTypes.func.isRequired
 };
 
-PlayerDetailsHeader.contextTypes = {
-  router: PropTypes.object.isRequired
-};
-
 export default PlayerDetailsHeader;

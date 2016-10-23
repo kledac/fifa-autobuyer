@@ -1,5 +1,7 @@
 import 'babel-polyfill';
 import { jsdom } from 'jsdom';
+import mockery from 'mockery';
+import electron from './mocks/electron';
 
 global.document = jsdom('<!doctype html><html><body></body></html>');
 global.window = document.defaultView;
@@ -15,3 +17,7 @@ window.localStorage = window.sessionStorage = {
     this[key] = undefined;
   },
 };
+
+// Mock Electron
+mockery.enable({ warnOnUnregistered: false });
+mockery.registerMock('electron', electron);
