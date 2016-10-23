@@ -4,7 +4,7 @@ import { stub, spy } from 'sinon';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { remote } from '../mocks/electron';
+import { remote, currentWindowSpies } from '../mocks/electron';
 import { Header } from '../../app/components/Header';
 import util from '../../app/utils/Util';
 
@@ -78,7 +78,7 @@ describe('components', () => {
     });
 
     it('should call handleFullscreen on fullscreen', () => {
-      const isWindows = stub(util, 'isWindows').returns(true);
+      const isWindows = stub(util, 'isWindows').returns(false);
       const { component, fullscreen } = setup({ hideLogin: true });
       expect(fullscreen).to.have.length(1);
       fullscreen.simulate('click');
@@ -87,12 +87,16 @@ describe('components', () => {
     });
 
     it('should call handleFullscreen on fullscreen (Windows)', () => {
+      const isWindows = stub(util, 'isWindows').returns(true);
       const { component, fullscreen } = setup({ hideLogin: true });
       expect(fullscreen).to.have.length(1);
       fullscreen.simulate('click');
+      expect(currentWindowSpies.maximize.called).to.be.true;
       remote.getCurrentWindow().maximize();
       fullscreen.simulate('click');
+      expect(currentWindowSpies.unmaximize.called).to.be.true;
       expect(component.instance().handleFullscreen.called).to.be.true;
+      isWindows.restore();
     });
 
     it('should exit fullscreen when esc is pressed if fullscreen enabled', () => {
