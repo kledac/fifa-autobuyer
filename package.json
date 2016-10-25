@@ -1,6 +1,6 @@
 {
-  "name": "fifa-autobuyer-webpack",
-  "productName": "ElectronReact",
+  "name": "fifa-autobuyer",
+  "productName": "FIFA Autobuyer",
   "version": "0.10.0",
   "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
   "main": "main.js",
@@ -27,16 +27,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chentsulin/electron-react-boilerplate.git"
+    "url": "git+https://github.com/hunterjm/fifa-autobuyer.git"
   },
   "author": {
-    "name": "C. T. Lin",
-    "email": "chentsulin@gmail.com",
-    "url": "https://github.com/chentsulin"
+    "name": "Jason Hunter",
+    "email": "hunterjm@gmail.com",
+    "url": "https://github.com/hunterjm"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/chentsulin/electron-react-boilerplate/issues"
+    "url": "https://github.com/hunterjm/fifa-autobuyer/issues"
   },
   "keywords": [
     "electron",
@@ -47,7 +47,7 @@
     "webpack",
     "react-hot"
   ],
-  "homepage": "https://github.com/chentsulin/electron-react-boilerplate#readme",
+  "homepage": "https://github.com/hunterjm/fifa-autobuyer#readme",
   "devDependencies": {
     "asar": "^0.12.2",
     "autoprefixer-loader": "^3.2.0",
