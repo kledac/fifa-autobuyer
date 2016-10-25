@@ -18,7 +18,7 @@ const currentWindowSpies = {
 
 export default {
   shell: {
-    openExternal: spy(() => true)
+    openExternal: spy()
   },
   remote: {
     getCurrentWindow: () => currentWindowSpies,
