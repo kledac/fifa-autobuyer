@@ -1,6 +1,4 @@
 os: unstable
-platform:
-  - x64
 cache:
   - node_modules
 environment:
