@@ -25,6 +25,7 @@ addons:
       - xorriso
 
 install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX="g++-4.8"; fi
   - npm install
 
 script:
