@@ -1,19 +1,18 @@
 import React from 'react';
 import { expect } from 'chai';
-import { assert, stub, spy } from 'sinon';
+import { spy } from 'sinon';
 import { mount } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
+import { shell } from '../mocks/electron';
+import player, { totwPlayer } from '../mocks/player';
 import { Players } from '../../app/containers/Players';
 import ConnectedPlayerListItem from '../../app/components/player/PlayerListItem';
 
 const middlewares = [thunk];
 const mockStore = configureMockStore(middlewares);
 
-const databaseStub = stub(Players.prototype, 'handleClickPlayerDatabase');
-const feedbackStub = stub(Players.prototype, 'handleClickReportIssue');
-
-function setup(initialState = { account: {} }) {
+function setup(initialState = { account: {} }, pathname = '/players') {
   const store = mockStore(initialState);
   const context = {
     context: {
@@ -34,13 +33,17 @@ function setup(initialState = { account: {} }) {
       router: React.PropTypes.object
     }
   };
-  const component = mount(<Players {...initialState}><div /></Players>, context);
+  const component = mount(
+    <Players {...initialState} location={{ pathname }}><div /></Players>,
+    context
+  );
   return {
     component,
     database: component.find('.btn-database'),
     feedback: component.find('.btn-feedback'),
     addPlayer: component.find('.btn-new'),
     sidebar: component.find('.sidebar-containers'),
+    button: component.find('.create'),
     playerCards: component.find(ConnectedPlayerListItem)
   };
 }
@@ -60,7 +63,8 @@ describe('containers', () => {
       });
       expect(database).to.have.length(1);
       database.simulate('click');
-      assert.called(databaseStub);
+      expect(shell.openExternal.calledOnce).to.be.true;
+      shell.openExternal.reset();
     });
 
     it('should call handleClickReportIssue when issue icon clicked', () => {
@@ -75,7 +79,36 @@ describe('containers', () => {
       });
       expect(feedback).to.have.length(1);
       feedback.simulate('click');
-      assert.called(feedbackStub);
+      expect(shell.openExternal.calledOnce).to.be.true;
+      shell.openExternal.reset();
+    });
+
+    it('should show settings button when on /players', () => {
+      const { button } = setup({
+        account: {
+          credits: 1000
+        },
+        player: {
+          list: {},
+          search: {}
+        }
+      });
+      expect(button).to.have.length(1);
+      expect(button.text()).to.equal('Settings');
+    });
+
+    it('should show search button when on /players/:id', () => {
+      const { button } = setup({
+        account: {
+          credits: 1000
+        },
+        player: {
+          list: {},
+          search: {}
+        }
+      }, '/players/20801');
+      expect(button).to.have.length(1);
+      expect(button.text()).to.equal('Search');
     });
 
     it('should call handleScroll when scroll event happens in sidebar', () => {
@@ -108,68 +141,13 @@ describe('containers', () => {
         },
         player: {
           list: {
-            20801: {
-              nation: {
-                imageUrls: {
-                  small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/flags/html5/24x14/38.png'
-                }
-              },
-              club: {
-                imageUrls: {
-                  normal: {
-                    small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/clubbadges/html5/normal/24x24/l243.png'
-                  }
-                }
-              },
-              position: 'LW',
-              name: 'Cristiano Ronaldo',
-              color: 'rare_gold',
-              id: '20801',
-              rating: 94
-            },
-            158023: {
-              nation: {
-                imageUrls: {
-                  small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/flags/html5/24x14/52.png'
-                }
-              },
-              club: {
-                imageUrls: {
-                  normal: {
-                    small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/clubbadges/html5/normal/24x24/l241.png'
-                  }
-                }
-              },
-              position: 'RW',
-              name: 'Messi',
-              color: 'rare_gold',
-              id: '158023',
-              rating: 93
-            },
-            67276528: {
-              nation: {
-                imageUrls: {
-                  small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/flags/html5/24x14/52.png'
-                }
-              },
-              club: {
-                imageUrls: {
-                  normal: {
-                    small: 'https://fifa17.content.easports.com/fifa/fltOnlineAssets/CC8267B6-0817-4842-BB6A-A20F88B05418/2017/fut/items/images/clubbadges/html5/normal/24x24/l45.png'
-                  }
-                }
-              },
-              position: 'ST',
-              name: 'Higuaín',
-              color: 'totw_gold',
-              id: '67276528',
-              rating: 89
-            }
+            20801: player,
+            67276528: totwPlayer
           },
           search: {}
         }
       });
-      expect(playerCards).to.have.length(3);
+      expect(playerCards).to.have.length(2);
     });
   });
 });

@@ -60,11 +60,21 @@ export class Players extends Component {
             <section className={sidebarHeaderClass}>
               <h4>Player List</h4>
               <div className="create">
-                <Link to="/players">
-                  <span className="btn btn-new btn-action has-icon btn-hollow">
-                    <span className="icon icon-add" />Search
-                  </span>
-                </Link>
+                {
+                  this.props.location.pathname === '/players'
+                  ?
+                    <Link to="/settings">
+                      <span className="btn btn-new btn-action has-icon btn-hollow">
+                        <span className="icon icon-preferences" />Settings
+                      </span>
+                    </Link>
+                  :
+                    <Link to="/players">
+                      <span className="btn btn-new btn-action has-icon btn-hollow">
+                        <span className="icon icon-search" />Search
+                      </span>
+                    </Link>
+                }
               </div>
             </section>
             <section className="sidebar-containers" onScroll={this.handleScroll.bind(this)}>
@@ -93,7 +103,10 @@ export class Players extends Component {
 
 Players.propTypes = {
   children: PropTypes.element.isRequired,
-  player: PropTypes.shape({})
+  player: PropTypes.shape({}),
+  location: PropTypes.shape({
+    pathname: PropTypes.string
+  })
 };
 
 Players.contextTypes = {
