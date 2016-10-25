@@ -23,7 +23,7 @@ function setup() {
   };
   props.player.list[player.id] = player;
   props.player.list[totwPlayer.id] = totwPlayer;
-  const component = mount(<PlayerDetails {...actions} {...props} />, context);
+  const component = mount(<PlayerDetails {...actions} {...props} />);
   return {
     component,
     actions

@@ -12,7 +12,7 @@ function setup(totw = false) {
     updatePrice: spy()
   };
   const testPlayer = totw ? totwPlayer : player;
-  const component = shallow(<PlayerDetailsHeader player={testPlayer} {...actions} />, context);
+  const component = shallow(<PlayerDetailsHeader player={testPlayer} {...actions} />);
   return {
     component,
     actions,
