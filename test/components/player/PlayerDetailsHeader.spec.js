@@ -2,10 +2,9 @@ import React from 'react';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { shallow } from 'enzyme';
+import { shell } from '../../mocks/electron';
 import PlayerDetailsHeader from '../../../app/components/player/PlayerDetailsHeader';
 import player, { totwPlayer } from '../../mocks/player';
-
-const openExternal = spy(PlayerDetailsHeader.prototype, 'handleClickPlayerLink');
 
 function setup(totw = false) {
   const actions = {
@@ -34,7 +33,8 @@ describe('components', () => {
         const { buttons } = setup();
         expect(buttons).to.have.length(2);
         buttons.at(1).simulate('click');
-        expect(openExternal.called).to.be.true;
+        expect(shell.openExternal.calledOnce).to.be.true;
+        shell.openExternal.reset();
       });
     });
   });
