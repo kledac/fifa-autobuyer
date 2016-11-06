@@ -44,7 +44,7 @@ export class PlayerDetails extends Component {
         <div className="details-panel home">
           <div className="content">
             <div className="full">
-              <PlayerDetailTable player={this.player} />
+              <PlayerDetailTable player={this.player} platform={this.props.platform} />
             </div>
           </div>
         </div>
@@ -60,12 +60,14 @@ PlayerDetails.propTypes = {
   }),
   player: PropTypes.shape({
     list: PropTypes.shape({})
-  })
+  }),
+  platform: PropTypes.string,
 };
 
 function mapStateToProps(state) {
   return {
-    player: state.player
+    player: state.player,
+    platform: state.account.platform
   };
 }
 

@@ -29,8 +29,28 @@ export class Settings extends Component {
 
   validate() {
     const errors = {};
-    if (!validator.isNumeric(this.props.settings.rpm || '')) {
+    if (!validator.isNumeric(this.props.settings.rpm)) {
       errors.rpm = 'Must be numeric';
+    }
+
+    if (!validator.isNumeric(this.props.settings.minCredits)) {
+      errors.minCredits = 'Must be numeric';
+    }
+
+    if (!validator.isNumeric(this.props.settings.maxCard)) {
+      errors.maxCard = 'Must be numeric';
+    }
+
+    if (!validator.isNumeric(this.props.settings.buy)) {
+      errors.buy = 'Must be numeric';
+    }
+
+    if (!validator.isNumeric(this.props.settings.sell)) {
+      errors.sell = 'Must be numeric';
+    }
+
+    if (!validator.isNumeric(this.props.settings.bin)) {
+      errors.bin = 'Must be numeric';
     }
 
     return errors;
@@ -92,7 +112,7 @@ export class Settings extends Component {
             </div>
             <div className="option-value">
               <input
-                ref={maxCardInput => (this.maxCardInput = maxCardInput)} name="maxCard" placeholder="Max number of a single card type"
+                ref={maxCardInput => (this.maxCardInput = maxCardInput)} maxLength="3" name="maxCard" placeholder="Max Cards"
                 value={maxCard || ''} type="text" onChange={this.handleChange.bind(this)} onBlur={this.handleBlur.bind(this)}
               />
               <p className="error-message">{this.state.errors.maxCard}</p>
