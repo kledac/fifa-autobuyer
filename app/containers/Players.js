@@ -1,11 +1,15 @@
 import React, { PropTypes, Component } from 'react';
 import { shell } from 'electron';
+import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
+import classNames from 'classnames';
 import ConnectedPlayerListItem from '../components/player/PlayerListItem';
 import ConnectedHeader from '../components/Header';
 import metrics from '../utils/MetricsUtil';
+import * as PlayerActions from '../actions/player';
+import * as BidActions from '../actions/bid';
 
 export class Players extends Component {
   constructor(props) {
@@ -27,11 +31,8 @@ export class Players extends Component {
     }
   }
 
-  handleClickPlayerDatabase() {
-    metrics.track('Opened Player Database', {
-      from: 'app'
-    });
-    shell.openExternal('https://www.easports.com/fifa/ultimate-team/fut/database');
+  handleClickClearList() {
+    this.props.clear();
   }
 
   handleClickReportIssue() {
@@ -51,6 +52,12 @@ export class Players extends Component {
       _.get(this.props, 'player.list', {}),
       player => <ConnectedPlayerListItem key={player.id} player={player} />
     );
+
+    const overviewClasses = classNames({
+      state: true,
+      'state-stopped': !this.props.bidding,
+      'state-running': this.props.bidding,
+    });
 
     return (
       <div className="containers">
@@ -79,19 +86,42 @@ export class Players extends Component {
             </section>
             <section className="sidebar-containers" onScroll={this.handleScroll.bind(this)}>
               <ul>
+                <div ref={node => (this.node = node)}>
+                  <Link to="/players/overview">
+                    <li id="overview">
+                      <div className={overviewClasses} />
+                      <div className="info">
+                        <div className="name">
+                          Bidding Overview
+                        </div>
+                        <div className="image">
+                          Review bidding history
+                        </div>
+                      </div>
+                    </li>
+                  </Link>
+                </div>
                 {players}
               </ul>
             </section>
             <section className="sidebar-buttons">
-              <span className="btn-sidebar btn-database" onClick={this.handleClickPlayerDatabase}>
-                <span className="text">Player Database</span>
+              <span className="btn-sidebar btn-database" onClick={this.handleClickClearList.bind(this)}>
+                <span className="text">Clear List</span>
               </span>
               <span className="btn-sidebar btn-feedback" onClick={this.handleClickReportIssue}>
                 <span className="icon icon-feedback" />
               </span>
-              <span className="btn-sidebar btn-start">
-                <span className="icon icon-start" />
-              </span>
+              {
+                this.props.bidding
+                ?
+                  (<span className="btn-sidebar btn-stop" onClick={() => this.props.stop()}>
+                    <span className="icon icon-stop" />
+                  </span>)
+                :
+                  (<span className="btn-sidebar btn-start" onClick={() => this.props.start()}>
+                    <span className="icon icon-start" />
+                  </span>)
+              }
             </section>
           </div>
           {this.props.children}
@@ -106,7 +136,11 @@ Players.propTypes = {
   player: PropTypes.shape({}),
   location: PropTypes.shape({
     pathname: PropTypes.string
-  })
+  }),
+  bidding: PropTypes.bool.isRequired,
+  start: PropTypes.func.isRequired,
+  stop: PropTypes.func.isRequired,
+  clear: PropTypes.func.isRequired,
 };
 
 Players.contextTypes = {
@@ -115,8 +149,13 @@ Players.contextTypes = {
 
 function mapStateToProps(state) {
   return {
-    player: state.player
+    player: state.player,
+    bidding: state.bid.bidding
   };
 }
 
-export default connect(mapStateToProps)(Players);
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators({ ...PlayerActions, ...BidActions }, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Players);

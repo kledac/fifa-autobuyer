@@ -40,8 +40,11 @@ export default validate({
   // https://webpack.github.io/docs/configuration.html#resolve
   resolve: {
     extensions: ['', '.js', '.jsx', '.json'],
-    packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']
+    packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main'],
+    fallback: path.join(__dirname, 'node_modules')
   },
+
+  resolveLoader: { fallback: path.join(__dirname, 'node_modules') },
 
   plugins: [],
 

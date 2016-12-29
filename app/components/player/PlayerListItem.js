@@ -1,10 +1,12 @@
 import $ from 'jquery';
+import _ from 'lodash';
 import React, { PropTypes, Component } from 'react';
 import { Link } from 'react-router';
 import { remote } from 'electron';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import numeral from 'numeral';
 import * as PlayerActions from '../../actions/player';
 
 export class PlayerListItem extends Component {
@@ -42,8 +44,8 @@ export class PlayerListItem extends Component {
     const card = (
       <OverlayTrigger placement="bottom" overlay={<Tooltip id="TOTY">TOTY</Tooltip>}>
         <div className={className}>
-          <img role="presentation" src={player.club.imageUrls.normal.small} />
-          <img role="presentation" src={player.nation.imageUrls.small} />
+          <img role="presentation" src={_.get(player, 'club.imageUrls.normal.small')} />
+          <img role="presentation" src={_.get(player, 'nation.imageUrls.small')} />
         </div>
       </OverlayTrigger>
     );
@@ -63,6 +65,10 @@ export class PlayerListItem extends Component {
               </div>
               <div className="image">
                 {player.rating} | {player.position}
+                <br />
+                {numeral(_.get(player, 'price.buy')).format('0,0')}/
+                {numeral(_.get(player, 'price.sell')).format('0,0')}/
+                {numeral(_.get(player, 'price.bin')).format('0,0')}
               </div>
             </div>
             <div className="action">

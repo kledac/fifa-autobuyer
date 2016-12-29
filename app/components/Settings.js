@@ -205,14 +205,14 @@ export class Settings extends Component {
 Settings.propTypes = {
   setSetting: PropTypes.func.isRequired,
   settings: PropTypes.shape({
-    rpm: PropTypes.number,
-    minCredits: PropTypes.number,
-    maxCard: PropTypes.number,
+    rpm: PropTypes.string,
+    minCredits: PropTypes.string,
+    maxCard: PropTypes.string,
     snipeOnly: PropTypes.bool,
     autoUpdate: PropTypes.bool,
-    buy: PropTypes.number,
-    sell: PropTypes.number,
-    bin: PropTypes.number,
+    buy: PropTypes.string,
+    sell: PropTypes.string,
+    bin: PropTypes.string,
     relistAll: PropTypes.bool
   })
 };

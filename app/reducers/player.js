@@ -15,12 +15,17 @@ export function player(state = initialState, action) {
     }
     case types.ADD_PLAYER: {
       const nextState = _.merge({}, state);
-      _.set(nextState, `list.${action.player.id}`, action.player);
+      _.set(nextState, `list.${_.get(action, 'player.id')}`, action.player);
       return nextState;
     }
     case types.REMOVE_PLAYER: {
       const nextState = _.merge({}, state);
       _.unset(nextState, `list.${action.player.id}`);
+      return nextState;
+    }
+    case types.CLEAR_LIST: {
+      const nextState = _.merge({}, state);
+      _.unset(nextState, 'list');
       return nextState;
     }
     case types.SET_PRICE: {

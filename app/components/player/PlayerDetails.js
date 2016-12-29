@@ -2,6 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import _ from 'lodash';
+import moment from 'moment';
 import PlayerDetailsHeader from './PlayerDetailsHeader';
 import PlayerDetailTable from './PlayerDetailTable';
 import * as PlayerActions from '../../actions/player';
@@ -10,10 +11,6 @@ export class PlayerDetails extends Component {
   constructor(props) {
     super(props);
     this.player = props.player.list[props.params.id];
-  }
-
-  componentDidMount() {
-    this.updatePrice();
   }
 
   shouldComponentUpdate(nextProps) {
@@ -30,7 +27,11 @@ export class PlayerDetails extends Component {
 
   componentWillUpdate(nextProps) {
     this.player = nextProps.player.list[nextProps.params.id];
-    this.updatePrice();
+    const price = this.player.price || {};
+    const lastUpdated = moment(price.updated || 0);
+    if (!price.buy || moment().isAfter(lastUpdated.add(1, 'h'))) {
+      this.updatePrice();
+    }
   }
 
   updatePrice() {

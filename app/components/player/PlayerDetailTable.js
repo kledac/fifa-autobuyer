@@ -122,6 +122,24 @@ class PlayerDetailTable extends Component {
                     </span>
                     <div className="ut-bio-prices_price-label">Lowest BIN</div>
                   </div>
+                  <div className="ut-bio-prices_price">
+                    <span className="ut-data_val ut-data_val--coins ut-bio-prices_price-value ng-binding">
+                      {player.price && numeral(player.price.buy).format('0,0')}
+                    </span>
+                    <div className="ut-bio-prices_price-label">Buy For</div>
+                  </div>
+                  <div className="ut-bio-prices_price">
+                    <span className="ut-data_val ut-data_val--coins ut-bio-prices_price-value ng-binding">
+                      {player.price && numeral(player.price.sell).format('0,0')}
+                    </span>
+                    <div className="ut-bio-prices_price-label">Sell For</div>
+                  </div>
+                  <div className="ut-bio-prices_price">
+                    <span className="ut-data_val ut-data_val--coins ut-bio-prices_price-value ng-binding">
+                      {player.price && numeral(player.price.bin).format('0,0')}
+                    </span>
+                    <div className="ut-bio-prices_price-label">Set BIN</div>
+                  </div>
                 </div>
               </div>
               <div className="ut-bio-details_stats ut-grid-view">
