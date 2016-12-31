@@ -42,6 +42,15 @@ export class Players extends Component {
     shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues');
   }
 
+  handleToggleBidding() {
+    if (this.props.bidding) {
+      this.props.stop();
+    } else {
+      this.props.start();
+      this.context.router.push('/players/overview');
+    }
+  }
+
   render() {
     let sidebarHeaderClass = 'sidebar-header';
     if (this.state.sidebarOffset) {
@@ -114,11 +123,11 @@ export class Players extends Component {
               {
                 this.props.bidding
                 ?
-                  (<span className="btn-sidebar btn-stop" onClick={() => this.props.stop()}>
+                  (<span className="btn-sidebar btn-stop" onClick={() => this.handleToggleBidding()}>
                     <span className="icon icon-stop" />
                   </span>)
                 :
-                  (<span className="btn-sidebar btn-start" onClick={() => this.props.start()}>
+                  (<span className="btn-sidebar btn-start" onClick={() => this.handleToggleBidding()}>
                     <span className="icon icon-start" />
                   </span>)
               }

@@ -51,7 +51,8 @@ function setup(initialState = { account: {} }, pathname = '/players') {
 
 describe('containers', () => {
   describe('Players', () => {
-    it('should call handleClickPlayerDatabase when database icon clicked', () => {
+    it('should call handleClickClearList when Clear List icon clicked', () => {
+      const clear = spy();
       const { database } = setup({
         account: {
           credits: 1000
@@ -59,12 +60,12 @@ describe('containers', () => {
         player: {
           list: {},
           search: {}
-        }
+        },
+        clear
       });
       expect(database).to.have.length(1);
       database.simulate('click');
-      expect(shell.openExternal.calledOnce).to.be.true;
-      shell.openExternal.reset();
+      expect(clear.calledOnce).to.be.true;
     });
 
     it('should call handleClickReportIssue when issue icon clicked', () => {

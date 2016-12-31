@@ -22,13 +22,16 @@ export function bid(state = initialState, action) {
       nextState = _.merge({}, state, { cycles: action.count });
       return nextState;
     case types.SET_WATCHLIST:
-      nextState = _.merge({}, state, { watchlist: action.watchlist });
+      nextState = _.merge({}, state);
+      _.set(nextState, 'watchlist', action.watchlist);
       return nextState;
     case types.SET_TRADEPILE:
-      nextState = _.merge({}, state, { tradepile: action.tradepile });
+      nextState = _.merge({}, state);
+      _.set(nextState, 'tradepile', action.tradepile);
       return nextState;
     case types.SET_UNASSIGNED:
-      nextState = _.merge({}, state, { unassigned: action.unassigned });
+      nextState = _.merge({}, state);
+      _.set(nextState, 'unassigned', action.unassigned);
       return nextState;
     default:
       return state;

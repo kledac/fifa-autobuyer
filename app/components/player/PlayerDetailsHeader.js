@@ -29,7 +29,7 @@ class PlayerDetailsHeader extends Component {
         </div>
         <div className="details-subheader">
           <div className="details-header-actions">
-            <div className="action" onClick={this.props.updatePrice}>
+            <div className="action" onClick={() => this.props.updatePrice(true)}>
               <div className="action-icon">
                 <span className="icon icon-restart" />
               </div>

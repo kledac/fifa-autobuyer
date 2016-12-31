@@ -13,6 +13,10 @@ export class PlayerDetails extends Component {
     this.player = props.player.list[props.params.id];
   }
 
+  componentDidMount() {
+    this.updatePrice();
+  }
+
   shouldComponentUpdate(nextProps) {
     const id = this.props.params.id;
     const nextId = nextProps.params.id;
@@ -27,15 +31,15 @@ export class PlayerDetails extends Component {
 
   componentWillUpdate(nextProps) {
     this.player = nextProps.player.list[nextProps.params.id];
-    const price = this.player.price || {};
-    const lastUpdated = moment(price.updated || 0);
-    if (!price.buy || moment().isAfter(lastUpdated.add(1, 'h'))) {
-      this.updatePrice();
-    }
+    this.updatePrice();
   }
 
-  updatePrice() {
-    this.props.findPrice(this.player.id);
+  updatePrice(force = false) {
+    const price = this.player.price || {};
+    const lastUpdated = moment(price.updated || 0);
+    if (force || !price.buy || moment().isAfter(lastUpdated.add(1, 'h'))) {
+      this.props.findPrice(this.player.id);
+    }
   }
 
   render() {
