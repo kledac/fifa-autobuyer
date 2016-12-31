@@ -36,10 +36,10 @@ export function player(state = initialState, action) {
     }
     case bidTypes.UPDATE_PLAYER_HISTORY: {
       const nextState = _.merge({}, state);
-      const trade = {};
-      trade[action.trade.tradeId] = action.trade;
+      const history = {};
+      history[action.history.id] = action.history;
       _.set(nextState, `list.${action.id}.history`, _.merge(
-        {}, _.get(nextState, `list.${action.id}.history`, {}), trade
+        {}, _.get(nextState, `list.${action.id}.history`, {}), history
       ));
       return nextState;
     }

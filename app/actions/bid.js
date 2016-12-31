@@ -220,7 +220,7 @@ export function cycle() {
                   console.log(`Bidding ${bid} on ${trade.tradeId}`);
                   // Add it to watched trades for listing and update our local watchlist
                   trades[tradeResult.tradeId] = tradeResult;
-                  dispatch({ type: types.SET_WATCHLIST, watchlist: Object.values(trades) });
+                  dispatch(setWatchlist(Object.values(trades)));
                   // Increment number of trades watched
                   if (watched[player.id] === undefined) {
                     watched[player.id] = 1;
@@ -229,7 +229,7 @@ export function cycle() {
                   }
                 } else {
                   // TODO: do something about this
-                  console.warn(`Something happened when trying to bid on ${tradeResult.tradeId}`);
+                  console.warn(`Something happened when trying to bid on ${trade.tradeId}`);
                 }
               }
             }
@@ -280,6 +280,11 @@ export function cycle() {
                         trackedPlayer.price.bin,
                         3600);
                       listed[baseId] += 1;
+                      dispatch(updateHistory(baseId, {
+                        id: item.itemData.id,
+                        bought: item.itemData.lastSalePrice,
+                        updated: Date.now()
+                      }));
                     } catch (e) {
                       console.error('Error listing won auction for sale', e);
                     }
@@ -289,37 +294,37 @@ export function cycle() {
                   try {
                     await api.removeFromWatchlist(item.tradeId);
                     delete trades[item.tradeId];
+                    dispatch(setWatchlist(Object.values(trades)));
                   } catch (e) {
                     console.error('Error removing lost auction from watchlist', e);
                   }
                 }
               } else if (item.bidState !== 'highest') {
                 state = getState();
-                // Only continue if we don't have too many listed and we have enough credits
-                if (listed[baseId] < settings.maxPlayer
-                  && state.account.credits > settings.minCredits) {
-                  // We were outbid
-                  const newBid = Fut.calculateNextHigherPrice(item.currentBid);
-                  if (newBid > trackedPlayer.price.bid) {
-                    try {
-                      await api.removeFromWatchlist(item.tradeId);
-                      delete trades[item.tradeId];
-                    } catch (e) {
-                      console.error('Error removing outbid item from watchlist', e);
-                    }
-                  } else {
-                    let tradeResult = {};
-                    try {
-                      const placeBidResponse = await api.placeBid(item.tradeId, newBid);
-                      dispatch(setCredits(placeBidResponse.credits));
-                      tradeResult = placeBidResponse.auctionInfo[0] || {};
-                    } catch (e) {
-                      console.error('Error placing additional bid on item', e);
-                    }
-                    if (tradeResult.bidState !== 'highest') {
-                      // TODO: do something about this
-                      console.warn(`Something happened when trying to bid on ${tradeResult.tradeId}`);
-                    }
+                // We were outbid
+                const newBid = Fut.calculateNextHigherPrice(item.currentBid);
+                if (newBid > trackedPlayer.price.bid || listed[baseId] >= settings.maxPlayer) {
+                  // Remove from list if new bid is too high, or we already have too many listed
+                  try {
+                    await api.removeFromWatchlist(item.tradeId);
+                    delete trades[item.tradeId];
+                    dispatch(setWatchlist(Object.values(trades)));
+                  } catch (e) {
+                    console.error('Error removing outbid item from watchlist', e);
+                  }
+                } else if (state.account.credits > settings.minCredits) {
+                  // Only continue if we have enough credits
+                  let tradeResult = {};
+                  try {
+                    const placeBidResponse = await api.placeBid(item.tradeId, newBid);
+                    dispatch(setCredits(placeBidResponse.credits));
+                    tradeResult = placeBidResponse.auctionInfo[0] || {};
+                  } catch (e) {
+                    console.error('Error placing additional bid on item', e);
+                  }
+                  if (tradeResult.bidState !== 'highest') {
+                    // TODO: do something about this
+                    console.warn(`Something happened when trying to bid on ${tradeResult.tradeId}`);
                   }
                 }
               }
@@ -352,6 +357,11 @@ export function cycle() {
                     trackedPlayer.price.bin,
                     3600);
                   listed[baseId] += 1;
+                  dispatch(updateHistory(baseId, {
+                    id: i.id,
+                    bought: i.lastSalePrice,
+                    updated: Date.now()
+                  }));
                 } catch (e) {
                   console.error('Error listing won BIN for sale', e);
                 }
@@ -403,7 +413,11 @@ export function cycle() {
             const baseId = Fut.getBaseId(i.itemData.resourceId);
             const trackedPlayer = _.get(state.player, `list.${baseId}`, false);
             if (trackedPlayer) {
-              dispatch(updateHistory(baseId, i));
+              dispatch(updateHistory(baseId, {
+                id: i.itemData.id,
+                sold: i.currentBid,
+                updated: Date.now()
+              }));
             }
             try {
               await api.removeFromTradepile(i.tradeId);
@@ -437,8 +451,12 @@ export function getWatchlist(email) {
     const api = getApi(email);
     const response = await api.getWatchlist();
     dispatch(setCredits(response.credits));
-    dispatch({ type: types.SET_WATCHLIST, watchlist: response.auctionInfo });
+    dispatch(setWatchlist(response.auctionInfo));
   };
+}
+
+export function setWatchlist(watchlist) {
+  return { type: types.SET_WATCHLIST, watchlist };
 }
 
 export function getUnassigned(email) {
@@ -450,8 +468,8 @@ export function getUnassigned(email) {
   };
 }
 
-export function updateHistory(id, trade) {
-  return { type: types.UPDATE_PLAYER_HISTORY, id, trade };
+export function updateHistory(id, history) {
+  return { type: types.UPDATE_PLAYER_HISTORY, id, history };
 }
 
 export function stop() {
