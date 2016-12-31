@@ -8,9 +8,22 @@ import Fut from 'fut-promise';
 import * as BidActions from '../../actions/bid';
 
 export class Overview extends Component {
+  constructor(props) {
+    super(props);
+    this.counter = undefined;
+  }
+
   async componentDidMount() {
     this.handleResize();
     window.addEventListener('resize', this.handleResize);
+    this.counter = window.setInterval(() => {
+      $('.expires').each(function countdown() {
+        const expires = parseInt($(this).text(), 10);
+        if (expires > 0) {
+          $(this).text(expires - 1);
+        }
+      });
+    }, 1000);
     if (!this.props.bidding) {
       await this.props.getWatchlist(this.props.email);
       await this.props.getTradepile(this.props.email);
@@ -29,6 +42,8 @@ export class Overview extends Component {
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.handleResize);
+    window.clearInterval(this.counter);
+    this.counter = undefined;
   }
 
   handleResize() {
@@ -109,9 +124,9 @@ export class Overview extends Component {
                         {}
                       );
                       const rowClass = classNames({
-                        success: item.bidState === 'highest' && item.expires === -1,
-                        warning: item.bidState !== 'highest' && item.expires > -1,
-                        danger: item.bidState !== 'highest' && item.expires === -1,
+                        success: item.bidState === 'highest',
+                        warning: item.bidState !== 'highest' && item.currentBid < player.price.buy && item.expires > -1,
+                        danger: item.bidState !== 'highest' && (item.expires === -1 || item.currentBid >= player.price.buy),
                       });
                       return (
                         <tr key={`watchlist-${item.itemData.id}`} className={rowClass}>
@@ -121,7 +136,7 @@ export class Overview extends Component {
                           <td>{item.startingBid}</td>
                           <td>{item.buyNowPrice}</td>
                           <td>{item.currentBid}</td>
-                          <td>{item.expires}</td>
+                          <td className="expires">{item.expires}</td>
                         </tr>
                       );
                     }
@@ -168,7 +183,7 @@ export class Overview extends Component {
                           <td>{item.startingBid}</td>
                           <td>{item.buyNowPrice}</td>
                           <td>{item.currentBid}</td>
-                          <td>{item.expires}</td>
+                          <td className="expires">{item.expires}</td>
                         </tr>
                       );
                     }
@@ -233,6 +248,9 @@ Overview.propTypes = {
   }),
   start: PropTypes.func.isRequired,
   stop: PropTypes.func.isRequired,
+  getWatchlist: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
+  getTradepile: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
+  getUnassigned: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
 };
 
 function mapStateToProps(state) {

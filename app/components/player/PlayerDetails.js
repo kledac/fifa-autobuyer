@@ -20,8 +20,8 @@ export class PlayerDetails extends Component {
   shouldComponentUpdate(nextProps) {
     const id = this.props.params.id;
     const nextId = nextProps.params.id;
-    const price = _.get(this.props.player, `list[${this.props.params.id}].price.lowest`, '');
-    const nextPrice = _.get(nextProps.player, `list[${this.props.params.id}].price.lowest`, '');
+    const price = JSON.stringify(_.get(this.props.player, `list[${this.props.params.id}].price`, {}));
+    const nextPrice = JSON.stringify(_.get(nextProps.player, `list[${this.props.params.id}].price`, {}));
 
     if (nextId === id && nextPrice === price) {
       return false;
