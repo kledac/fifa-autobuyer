@@ -33,6 +33,7 @@ export class Players extends Component {
 
   handleClickClearList() {
     this.props.clear();
+    this.context.router.push('/players');
   }
 
   handleClickReportIssue() {
@@ -104,7 +105,7 @@ export class Players extends Component {
                           Bidding Overview
                         </div>
                         <div className="image">
-                          Review bidding history
+                          Review bidding status
                         </div>
                       </div>
                     </li>

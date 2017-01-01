@@ -12,6 +12,8 @@ const filter = {
   num: 50,
 };
 
+let cycleTimeout;
+
 export function addMessage(msg) {
   return { type: types.ADD_MESSAGE, timestamp: new Date(), msg };
 }
@@ -282,8 +284,8 @@ export function cycle() {
                       listed[baseId] += 1;
                       dispatch(updateHistory(baseId, {
                         id: item.itemData.id,
-                        bought: item.itemData.lastSalePrice,
-                        updated: Date.now()
+                        bought: item.currentBid,
+                        boughtAt: Date.now()
                       }));
                     } catch (e) {
                       console.error('Error listing won auction for sale', e);
@@ -360,7 +362,7 @@ export function cycle() {
                   dispatch(updateHistory(baseId, {
                     id: i.id,
                     bought: i.lastSalePrice,
-                    updated: Date.now()
+                    boughtAt: Date.now()
                   }));
                 } catch (e) {
                   console.error('Error listing won BIN for sale', e);
@@ -416,7 +418,7 @@ export function cycle() {
               dispatch(updateHistory(baseId, {
                 id: i.itemData.id,
                 sold: i.currentBid,
-                updated: Date.now()
+                soldAt: Date.now()
               }));
             }
             try {
@@ -432,7 +434,25 @@ export function cycle() {
     }
     // keep going
     if (state.bid.bidding) {
-      await dispatch(cycle());
+      if (
+        // We don't have enough credits
+        state.account.credits < state.settings.minCredits
+        // We aren't watching any auctions
+        && !state.bid.watchlist.length
+        // We have some players listed
+        && state.bid.tradepile.length
+      ) {
+        const timeout = state.bid.tradepile.reduce(
+          (a, b) => (a < b.expires ? a : b.expires),
+          60 // Wait a maximum of 60 seconds
+        ) * 1000;
+        console.log(`Waiting ${timeout / 1000} seconds before continuing...`);
+        cycleTimeout = window.setTimeout(() => {
+          dispatch(cycle());
+        }, timeout);
+      } else {
+        await dispatch(cycle());
+      }
     }
   };
 }
@@ -473,5 +493,9 @@ export function updateHistory(id, history) {
 }
 
 export function stop() {
+  if (cycleTimeout) {
+    window.clearTimeout(cycleTimeout);
+    cycleTimeout = undefined;
+  }
   return { type: types.STOP_BIDDING };
 }

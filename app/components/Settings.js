@@ -187,6 +187,8 @@ export class Settings extends Component {
               <label htmlFor="relistAll">Same Relist Price</label>
               <p><small>
                 Relist players at the prices they were bought for if market price changes
+                <br />
+                (risks tying up capital that could otherwise be used to make up the difference)
               </small></p>
             </div>
             <div className="option-value">

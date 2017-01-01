@@ -17,6 +17,9 @@ export function player(state = initialState, action) {
     case types.ADD_PLAYER: {
       const nextState = _.merge({}, state);
       _.set(nextState, `list.${_.get(action, 'player.id')}`, action.player);
+      // Setup additional information
+      _.set(nextState, `list.${_.get(action, 'player.id')}.price`, {});
+      _.set(nextState, `list.${_.get(action, 'player.id')}.history`, {});
       return nextState;
     }
     case types.REMOVE_PLAYER: {
@@ -26,7 +29,7 @@ export function player(state = initialState, action) {
     }
     case types.CLEAR_LIST: {
       const nextState = _.merge({}, state);
-      _.unset(nextState, 'list');
+      _.set(nextState, 'list', {});
       return nextState;
     }
     case types.SET_PRICE: {
