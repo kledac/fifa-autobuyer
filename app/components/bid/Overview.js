@@ -24,11 +24,9 @@ export class Overview extends Component {
     const oldData = _.get(this.props.bid, 'market.data[0]', [[1]]);
     const newData = _.get(nextProps.bid, 'market.data[0]', [[1]]);
     if (newData[newData.length - 1][0] !== oldData[oldData.length - 1][0]) {
-      console.log(newData[newData.length - 1][0]);
-      console.log(oldData[oldData.length - 1][0]);
       return true;
     }
-    return false;
+    return this.props.bidding !== nextProps.bidding;
   }
 
   componentDidUpdate() {

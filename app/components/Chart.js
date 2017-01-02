@@ -27,18 +27,6 @@ class Chart extends Component {
     );
   }
 
-  shouldComponentUpdate(nextProps) {
-    // Only update if our data changed
-    const oldData = _.get(this.props.options, 'series[0].data', [[1]]);
-    const newData = _.get(nextProps.options, 'series[0].data', [[1]]);
-    if (newData[newData.length - 1][0] !== oldData[oldData.length - 1][0]) {
-      console.log(newData[newData.length - 1][0]);
-      console.log(oldData[oldData.length - 1][0]);
-      return true;
-    }
-    return false;
-  }
-
   componentDidUpdate() {
     if (this.chart) {
       this.chart.destroy();

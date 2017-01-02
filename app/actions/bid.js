@@ -307,7 +307,7 @@ export function cycle() {
                 state = getState();
                 // We were outbid
                 const newBid = Fut.calculateNextHigherPrice(item.currentBid);
-                if (newBid > trackedPlayer.price.bid || listed[baseId] >= settings.maxPlayer) {
+                if (newBid > trackedPlayer.price.buy || listed[baseId] >= settings.maxPlayer) {
                   // Remove from list if new bid is too high, or we already have too many listed
                   try {
                     await api.removeFromWatchlist(item.tradeId);
