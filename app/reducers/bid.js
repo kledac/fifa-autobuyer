@@ -7,6 +7,10 @@ const initialState = {
   tradepile: [],
   watchlist: [],
   unassigned: [],
+  market: {
+    data: [],
+    flags: []
+  }
 };
 
 export function bid(state = initialState, action) {
@@ -32,6 +36,10 @@ export function bid(state = initialState, action) {
     case types.SET_UNASSIGNED:
       nextState = _.merge({}, state);
       _.set(nextState, 'unassigned', action.unassigned);
+      return nextState;
+    case types.SAVE_MARKET_DATA:
+      nextState = _.merge({}, state);
+      _.set(nextState, 'market', action.market);
       return nextState;
     default:
       return state;

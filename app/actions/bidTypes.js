@@ -11,3 +11,4 @@ export const SEARCH = 'bid/search';
 export const PLACE_BID = 'bid/place/bid';
 export const RELIST_ALL = 'bid/relist/all';
 export const UPDATE_PLAYER_HISTORY = 'bid/update/player/history';
+export const SAVE_MARKET_DATA = 'bid/save/market/data';

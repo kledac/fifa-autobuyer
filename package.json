@@ -119,6 +119,7 @@
     "electron-debug": "^1.0.1",
     "font-awesome": "^4.6.3",
     "fut-promise": "^0.8.7",
+    "highcharts": "^5.0.6",
     "jquery": "^3.1.1",
     "lodash": "^4.16.3",
     "mixpanel": "github:kitematic/mixpanel-node",
@@ -137,6 +138,7 @@
     "redux": "^3.5.2",
     "redux-thunk": "^2.1.0",
     "request": "^2.75.0",
+    "simple-statistics": "^2.2.0",
     "source-map-support": "^0.4.2",
     "validator": "^6.0.0"
   },

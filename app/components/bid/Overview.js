@@ -4,36 +4,31 @@ import React, { PropTypes, Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import classNames from 'classnames';
-import Fut from 'fut-promise';
+import ss from 'simple-statistics';
+import { shell } from 'electron';
+import ConnectedTransfers from './Transfers';
+import Chart from '../Chart';
 import * as BidActions from '../../actions/bid';
 
 export class Overview extends Component {
-  constructor(props) {
-    super(props);
-    this.counter = undefined;
-  }
-
   async componentDidMount() {
     this.handleResize();
     window.addEventListener('resize', this.handleResize);
-    this.counter = window.setInterval(() => {
-      $('.expires').each(function countdown() {
-        const expires = parseInt($(this).text(), 10);
-        if (expires > 0) {
-          $(this).text(expires - 1);
-        }
-      });
-    }, 1000);
-    if (!this.props.bidding) {
-      await this.props.getWatchlist(this.props.email);
-      await this.props.getTradepile(this.props.email);
-      await this.props.getUnassigned(this.props.email);
-    }
+    // Load Market Data
+    this.props.getMarketData(this.props.platform);
   }
 
-  shouldComponentUpdate() {
+  shouldComponentUpdate(nextProps) {
     // TODO: figure out when this needs to update (hint: not always)
-    return true;
+    // Only update if our data changed
+    const oldData = _.get(this.props.bid, 'market.data[0]', [[1]]);
+    const newData = _.get(nextProps.bid, 'market.data[0]', [[1]]);
+    if (newData[newData.length - 1][0] !== oldData[oldData.length - 1][0]) {
+      console.log(newData[newData.length - 1][0]);
+      console.log(oldData[oldData.length - 1][0]);
+      return true;
+    }
+    return false;
   }
 
   componentDidUpdate() {
@@ -42,8 +37,6 @@ export class Overview extends Component {
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.handleResize);
-    window.clearInterval(this.counter);
-    this.counter = undefined;
   }
 
   handleResize() {
@@ -57,9 +50,108 @@ export class Overview extends Component {
       disabled: false
     });
 
-    const watchlist = _.get(this.props.bid, 'watchlist', []);
-    const tradepile = _.get(this.props.bid, 'tradepile', []);
-    const unassigned = _.get(this.props.bid, 'unassigned', []);
+    let liveChartOptions;
+    if (this.props.bid.market.data.length) {
+      const marketData = this.props.bid.market.data;
+
+      // Determine market momentum
+      const points = marketData.slice(-240);
+      const regression = ss.linearRegression(points.map((p, i) => [i, p[1]]));
+      const l = ss.linearRegressionLine(regression);
+      const regressionLine = points.map((p, i) => [p[0], l(i)]);
+      const change = ((
+        (regressionLine[regressionLine.length - 1][1] - regressionLine[0][1]) / regressionLine[0][1]
+      ) * 100);
+
+      // Configure Market Trends Chart
+      const seriesData = [{
+        type: 'area',
+        name: 'Market Index',
+        data: marketData,
+        color: ['xone', 'x360'].indexOf(this.props.platform) !== -1 ? '#55cca2' : '#3498db',
+        showInLegend: false,
+        tooltip: {
+          valueDecimals: 2
+        },
+        visible: true
+      }, {
+        type: 'line',
+        name: 'Market Regression',
+        data: regressionLine,
+        color: ['xone', 'x360'].indexOf(this.props.platform) !== -1 ? '#3498db' : '#55cca2',
+        showInLegend: false,
+        tooltip: {
+          valueDecimals: 2
+        },
+        visible: true
+      }];
+      if (this.props.bid.market.flags.length) {
+        seriesData.push({
+          type: 'flags',
+          name: 'Events',
+          data: this.props.bid.market.flags,
+          shape: 'flag',
+          width: 45
+        });
+      }
+      liveChartOptions = {
+        rangeSelector: {
+          enabled: false
+        },
+        title: {
+          text: this.props.bid.market.title
+        },
+        subtitle: {
+          text: `4 Hour Change: ${change.toFixed(2)}% - Standard Deviation: ${Math.round(ss.standardDeviation(marketData.map(p => p[1])) * 100) / 100}`
+        },
+        legend: {
+          enabled: true
+        },
+        navigator: {
+          enabled: true
+        },
+        credits: {
+          enabled: false
+        },
+        xAxis: {
+          type: 'datetime',
+          dateTimeLabelFormats: {
+            month: '%e. %b',
+            year: '%b'
+          }
+        },
+        yAxis: {
+          title: {
+            text: 'Index Value'
+          },
+          opposite: false,
+          min: marketData.reduce((a, b) => Math.min(a, b[1]), 1000) - 20,
+          plotLines: [{
+            value: 0,
+            width: 1,
+            color: '#808080'
+          }]
+        },
+        tooltip: {
+          useHTML: true,
+          valueSuffix: '<span style="position: relative; top: -2px;"> <img src="https://www.futbin.com/design/img/coins.png"></span>'
+        },
+        plotOptions: {
+          line: {
+            marker: {
+              enabled: true,
+              radius: 1
+            }
+          },
+          spline: {
+            marker: {
+              enabled: true
+            }
+          }
+        },
+        series: seriesData
+      };
+    }
 
     return (
       <div className="details">
@@ -98,135 +190,28 @@ export class Overview extends Component {
             </div>
           </div>
         </div>
-        <div className="details-panel">
-          <div className="settings">
-            <div className="settings-panel">
-              <h1>Buying <small>({watchlist.length}/{this.props.pilesize.watchlist})</small></h1>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Max Price</th>
-                    <th>List Price</th>
-                    <th>BIN Price</th>
-                    <th>Current Bid</th>
-                    <th>Expires</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {_.map(
-                    watchlist,
-                    item => {
-                      const player = _.get(
-                        this.props.player,
-                        `list.${Fut.getBaseId(item.itemData.resourceId)}`,
-                        {}
-                      );
-                      const rowClass = classNames({
-                        success: item.bidState === 'highest',
-                        warning: item.bidState !== 'highest' && item.currentBid < player.price.buy && item.expires > -1,
-                        danger: item.bidState !== 'highest' && (item.expires === -1 || item.currentBid >= player.price.buy),
-                      });
-                      return (
-                        <tr key={`watchlist-${item.itemData.id}`} className={rowClass}>
-                          <td>{player.name}</td>
-                          <td>{item.bidState}</td>
-                          <td>{player.price.buy}</td>
-                          <td>{item.startingBid}</td>
-                          <td>{item.buyNowPrice}</td>
-                          <td>{item.currentBid}</td>
-                          <td className="expires">{item.expires}</td>
-                        </tr>
-                      );
-                    }
-                  )}
-                </tbody>
-              </table>
-              <h1>Selling <small>({tradepile.length}/{this.props.pilesize.tradepile})</small></h1>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Bought For</th>
-                    <th>List Price</th>
-                    <th>BIN Price</th>
-                    <th>Current Bid</th>
-                    <th>Expires</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {_.map(
-                    tradepile,
-                    item => {
-                      const player = _.get(
-                        this.props.player,
-                        `list.${Fut.getBaseId(item.itemData.resourceId)}`,
-                        {}
-                      );
-                      const rowClass = classNames({
-                        success: item.itemData.itemState === 'invalid' && item.expires === -1,
-                        danger: item.itemData.itemState !== 'invalid' && item.expires === -1,
-                      });
-                      return (
-                        <tr key={`tradepile-${item.itemData.id}`} className={rowClass}>
-                          <td>{player.name}</td>
-                          <td>
-                            {
-                              item.itemData.itemState === 'invalid'
-                              ? 'sold'
-                              : item.itemData.itemState
-                            }
-                          </td>
-                          <td>{item.itemData.lastSalePrice || 'N/A'}</td>
-                          <td>{item.startingBid}</td>
-                          <td>{item.buyNowPrice}</td>
-                          <td>{item.currentBid}</td>
-                          <td className="expires">{item.expires}</td>
-                        </tr>
-                      );
-                    }
-                  )}
-                </tbody>
-              </table>
-              <h1>Unassigned</h1>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Bought For</th>
-                    <th>List Price</th>
-                    <th>BIN Price</th>
-                    <th>Current Bid</th>
-                    <th>Expires</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {_.map(
-                    unassigned,
-                    item => {
-                      const player = _.get(
-                        this.props.player,
-                        `list.${Fut.getBaseId(item.resourceId)}`,
-                        {}
-                      );
-                      return (
-                        <tr key={`unassigned-${item.id}`}>
-                          <td>{player.name}</td>
-                          <td>{item.itemState}</td>
-                          <td>{item.lastSalePrice || 'N/A'}</td>
-                          <td>{player.price.sell}</td>
-                          <td>{player.price.bin}</td>
-                          <td>N/A</td>
-                          <td>N/A</td>
-                        </tr>
-                      );
-                    }
-                  )}
-                </tbody>
-              </table>
+        <div className="details-panel home">
+          <div className="content">
+            <ConnectedTransfers />
+            <div className="right">
+              <div className="wrapper">
+                <div className="widget">
+                  <div className="top-bar">
+                    <div className="text">Market Trends</div>
+                    <div className="action" onClick={() => this.props.getMarketData(this.props.platform)}>
+                      <span className="icon icon-restart" />
+                    </div>
+                    <div className="action" onClick={() => shell.openExternal('https://www.futbin.com/market/')}>
+                      <span className="icon icon-open-external" />
+                    </div>
+                  </div>
+                  {
+                    liveChartOptions
+                    ? <Chart type="StockChart" container="live_graph" options={liveChartOptions} />
+                    : null
+                  }
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -239,18 +224,18 @@ Overview.propTypes = {
   player: PropTypes.shape({
     list: PropTypes.shape({})
   }),
-  bid: PropTypes.shape({}),
-  bidding: PropTypes.bool,
-  email: PropTypes.string,
-  pilesize: PropTypes.shape({
-    watchlist: PropTypes.number.isRequired,
-    tradepile: PropTypes.number.isRequired,
+  bid: PropTypes.shape({
+    market: PropTypes.shape({
+      data: PropTypes.array,
+      flags: PropTypes.array,
+      title: PropTypes.string,
+    })
   }),
+  bidding: PropTypes.bool,
+  platform: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   start: PropTypes.func.isRequired,
   stop: PropTypes.func.isRequired,
-  getWatchlist: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
-  getTradepile: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
-  getUnassigned: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
+  getMarketData: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
 };
 
 function mapStateToProps(state) {
@@ -258,8 +243,7 @@ function mapStateToProps(state) {
     player: state.player,
     bid: state.bid,
     bidding: state.bid.bidding,
-    email: state.account.email,
-    pilesize: state.account.pilesize,
+    platform: state.account.platform,
   };
 }
 

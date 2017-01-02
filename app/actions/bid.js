@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import moment from 'moment';
 import Fut from 'fut-promise';
+import request from 'request';
 import * as types from './bidTypes';
 import { getApi } from '../utils/ApiUtil';
 import { setCredits } from './account';
@@ -13,6 +14,7 @@ const filter = {
 };
 
 let cycleTimeout;
+let marketRequest;
 
 export function addMessage(msg) {
   return { type: types.ADD_MESSAGE, timestamp: new Date(), msg };
@@ -490,6 +492,83 @@ export function getUnassigned(email) {
 
 export function updateHistory(id, history) {
   return { type: types.UPDATE_PLAYER_HISTORY, id, history };
+}
+
+export function getMarketData(platform, type = 'live_graph') {
+  return async dispatch => {
+    if (marketRequest) {
+      marketRequest.abort();
+      marketRequest = null;
+    }
+    return new Promise((resolve, reject) => {
+      marketRequest = request.get(
+        {
+          url: 'https://www.futbin.com/pages/market/graph.php?',
+          qs: { type, console: platform.toUpperCase(), _: moment.utc().valueOf() }
+        },
+        (error, response, body) => {
+          if (error) {
+            reject(error);
+          }
+          const json = JSON.parse(body);
+          if (response.statusCode === 200) {
+            resolve(json);
+          }
+        }
+      );
+    }).then(results => {
+      const market = { title: results.title, flags: results.flags };
+      switch (platform) {
+        case 'xone':
+        case 'x360':
+          market.data = results.xbox;
+          break;
+        default:
+          market.data = results.ps;
+          break;
+      }
+      // Map flags
+      const fillFlagColor = function fillFlagColor(design) {
+        let graphColorArr = [];
+        switch (design) {
+          case '1':
+            graphColorArr = ['#000', '#000', '#dcb20a'];
+            break;
+          case '2':
+            graphColorArr = ['#046aaf', '#046aaf', '#fff'];
+            break;
+          case '3':
+            graphColorArr = ['#00591b', '#00591b', '#fff'];
+            break;
+          case '4':
+            graphColorArr = ['#6099e6', '#6099e6', '#fff'];
+            break;
+          case '5':
+            graphColorArr = ['#4f3581', '#4f3581', '#fff'];
+            break;
+          default:
+            graphColorArr = ['#fff', '#000'];
+            break;
+        }
+        return graphColorArr;
+      };
+      market.flags = market.flags.map(flag => {
+        const colorArray = fillFlagColor(flag.design);
+        return {
+          x: moment.utc(flag.flag_date).valueOf(),
+          title: flag.title,
+          text: flag.description,
+          color: colorArray[0],
+          fillColor: colorArray[1],
+          style: {
+            color: colorArray[2],
+            borderRadius: 5
+          }
+        };
+      });
+      dispatch({ type: types.SAVE_MARKET_DATA, market });
+    });
+  };
 }
 
 export function stop() {

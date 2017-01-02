@@ -70,9 +70,7 @@ export class Header extends Component {
   }
   renderLogo() {
     return (
-      <div className="logo">
-        <RetinaImage src="images/logo.png" />
-      </div>
+      <div className="logo">17</div>
     );
   }
   renderWindowButtons() {
