@@ -65,9 +65,7 @@ class Chart extends Component {
 Chart.propTypes = {
   container: PropTypes.string,
   type: PropTypes.string,
-  options: PropTypes.shape({
-    series: PropTypes.array
-  }),
+  options: PropTypes.shape({}),
   modules: PropTypes.arrayOf(PropTypes.shape({})),
 };
 
