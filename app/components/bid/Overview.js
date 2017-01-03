@@ -21,8 +21,8 @@ export class Overview extends Component {
   shouldComponentUpdate(nextProps) {
     // TODO: figure out when this needs to update (hint: not always)
     // Only update if our data changed
-    const oldData = _.get(this.props.bid, 'market.data[0]', [[1]]);
-    const newData = _.get(nextProps.bid, 'market.data[0]', [[1]]);
+    const oldData = _.get(this.props.bid, 'market.data', [[1]]);
+    const newData = _.get(nextProps.bid, 'market.data', [[1]]);
     if (newData[newData.length - 1][0] !== oldData[oldData.length - 1][0]) {
       return true;
     }
