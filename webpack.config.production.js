@@ -57,7 +57,7 @@ export default validate(merge(baseConfig, {
       'process.env.NODE_ENV': JSON.stringify('production')
     }),
 
-    new BabiliPlugin(),
+    new BabiliPlugin({ sourceMap: false }),
 
     new ExtractTextPlugin('style.css', { allChunks: true }),
 
