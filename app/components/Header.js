@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { remote } from 'electron';
 import React, { Component, PropTypes } from 'react';
 import classNames from 'classnames';
@@ -172,7 +173,12 @@ Header.contextTypes = {
 function mapStateToProps(state) {
   return {
     credits: state.account.credits,
-    updates: state.app.updates
+    updates: _.get(state, 'app.updates', {
+      pending: false,
+      update: false,
+      downloaded: false,
+      message: '',
+    })
   };
 }
 
