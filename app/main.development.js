@@ -2,6 +2,7 @@ import { app, BrowserWindow, Menu, shell } from 'electron';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { initUpdater, checkForUpdates } from './updater';
 
 let menu;
 let template;
@@ -62,6 +63,7 @@ app.on('ready', async () => {
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.show();
     mainWindow.focus();
+    initUpdater(mainWindow);
   });
 
   mainWindow.on('closed', () => {
@@ -89,6 +91,13 @@ app.on('ready', async () => {
       submenu: [{
         label: 'About FIFA 17 Autobuyer',
         selector: 'orderFrontStandardAboutPanel:'
+      }, {
+        type: 'separator'
+      }, {
+        label: 'Check for Updates...',
+        click() {
+          checkForUpdates();
+        }
       }, {
         type: 'separator'
       }, {
@@ -171,6 +180,12 @@ app.on('ready', async () => {
         click() {
           mainWindow.setFullScreen(!mainWindow.isFullScreen());
         },
+      }, {
+        label: 'Toggle Developer Tools',
+        accelerator: 'Alt+Command+I',
+        click() {
+          mainWindow.toggleDevTools();
+        }
       }]
     }, {
       label: 'Window',
@@ -244,6 +259,12 @@ app.on('ready', async () => {
         click() {
           mainWindow.setFullScreen(!mainWindow.isFullScreen());
         }
+      }, {
+        label: 'Toggle &Developer Tools',
+        accelerator: 'Alt+Ctrl+I',
+        click() {
+          mainWindow.toggleDevTools();
+        }
       }]
     }, {
       label: 'Help',
@@ -256,6 +277,11 @@ app.on('ready', async () => {
         label: 'Search Issues',
         click() {
           shell.openExternal('https://github.com/hunterjm/fifa-autobuyer/issues');
+        }
+      }, {
+        label: 'Check for Updates',
+        click() {
+          checkForUpdates();
         }
       }]
     }];
