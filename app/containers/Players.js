@@ -147,10 +147,10 @@ Players.propTypes = {
   location: PropTypes.shape({
     pathname: PropTypes.string
   }),
-  bidding: PropTypes.bool.isRequired,
-  start: PropTypes.func.isRequired,
-  stop: PropTypes.func.isRequired,
-  clear: PropTypes.func.isRequired,
+  bidding: PropTypes.bool,
+  start: PropTypes.func,
+  stop: PropTypes.func,
+  clear: PropTypes.func,
 };
 
 Players.contextTypes = {
