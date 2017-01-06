@@ -1,15 +1,33 @@
 import React from 'react';
 import { expect } from 'chai';
-import { spy } from 'sinon';
+import { spy, stub } from 'sinon';
 import { mount } from 'enzyme';
 import { PlayerDetails } from '../../../app/components/player/PlayerDetails';
 import player, { totwPlayer } from '../../mocks/player';
 
 const shouldUpdate = spy(PlayerDetails.prototype, 'shouldComponentUpdate');
 
-function setup() {
+function setup(active = false) {
   const actions = {
     findPrice: spy()
+  };
+  const context = {
+    context: {
+      router: {
+        push: spy(),
+        replace: spy(),
+        go: spy(),
+        goBack: spy(),
+        goForward: spy(),
+        createHref: spy(),
+        setRouteLeaveHook: spy(),
+        isActive: stub().returns(active)
+      }
+    },
+    childContextTypes: {
+      store: React.PropTypes.object,
+      router: React.PropTypes.object
+    }
   };
   const props = {
     account: {},
@@ -23,7 +41,7 @@ function setup() {
   };
   props.player.list[player.id] = player;
   props.player.list[totwPlayer.id] = totwPlayer;
-  const component = mount(<PlayerDetails {...actions} {...props} />);
+  const component = mount(<PlayerDetails {...actions} {...props} />, context);
   return {
     component,
     actions
