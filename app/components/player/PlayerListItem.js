@@ -1,7 +1,6 @@
 import $ from 'jquery';
 import _ from 'lodash';
 import React, { PropTypes, Component } from 'react';
-import { Link } from 'react-router';
 import { remote } from 'electron';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { bindActionCreators } from 'redux';
@@ -16,6 +15,14 @@ export class PlayerListItem extends Component {
 
   handleItemMouseLeave() {
     $(this.node).find('.action').hide();
+  }
+
+  handleClick() {
+    let link = `/players/${this.props.player.id}`;
+    if (this.context.router.isActive(`/players/${this.context.router.params.id}/history`)) {
+      link = `/players/${this.props.player.id}/history`;
+    }
+    this.context.router.push(link);
   }
 
   handleDeletePlayer(e) {
@@ -52,32 +59,31 @@ export class PlayerListItem extends Component {
 
     return (
       <div ref={node => (this.node = node)}>
-        <Link to={`/players/${player.id}`}>
-          <li
-            onMouseEnter={this.handleItemMouseEnter.bind(this)}
-            onMouseLeave={this.handleItemMouseLeave.bind(this)}
-            id={player.id}
-          >
-            {card}
-            <div className="info">
-              <div className="name">
-                {player.name}
-              </div>
-              <div className="image">
-                {player.rating} | {player.position}
-                <br />
-                {numeral(_.get(player, 'price.buy')).format('0,0')}/
-                {numeral(_.get(player, 'price.sell')).format('0,0')}/
-                {numeral(_.get(player, 'price.bin')).format('0,0')}
-              </div>
+        <li
+          onMouseEnter={this.handleItemMouseEnter.bind(this)}
+          onMouseLeave={this.handleItemMouseLeave.bind(this)}
+          onClick={() => this.handleClick()}
+          id={player.id}
+        >
+          {card}
+          <div className="info">
+            <div className="name">
+              {player.name}
             </div>
-            <div className="action">
-              <span className="btn circular" onClick={this.handleDeletePlayer.bind(this)}>
-                <span className="icon icon-delete" />
-              </span>
+            <div className="image">
+              {player.rating} | {player.position}
+              <br />
+              {numeral(_.get(player, 'price.buy')).format('0,0')}/
+              {numeral(_.get(player, 'price.sell')).format('0,0')}/
+              {numeral(_.get(player, 'price.bin')).format('0,0')}
             </div>
-          </li>
-        </Link>
+          </div>
+          <div className="action">
+            <span className="btn circular" onClick={this.handleDeletePlayer.bind(this)}>
+              <span className="icon icon-delete" />
+            </span>
+          </div>
+        </li>
       </div>
     );
   }
@@ -88,7 +94,7 @@ PlayerListItem.propTypes = {
     id: PropTypes.int,
     name: PropTypes.string
   }),
-  remove: PropTypes.func.isRequired
+  remove: PropTypes.func.isRequired,
 };
 
 PlayerListItem.contextTypes = {

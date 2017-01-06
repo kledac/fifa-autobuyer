@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { shallow } from 'enzyme';
 import { shell } from '../../mocks/electron';
-import PlayerDetailsHeader from '../../../app/components/player/PlayerDetailsHeader';
+import Header from '../../../app/components/player/Header';
 import player, { totwPlayer } from '../../mocks/player';
 
 function setup(totw = false) {
@@ -11,7 +11,7 @@ function setup(totw = false) {
     updatePrice: spy()
   };
   const testPlayer = totw ? totwPlayer : player;
-  const component = shallow(<PlayerDetailsHeader player={testPlayer} {...actions} />);
+  const component = shallow(<Header player={testPlayer} {...actions} />);
   return {
     component,
     actions,

@@ -494,18 +494,21 @@ export function updateHistory(id, history) {
   return { type: types.UPDATE_PLAYER_HISTORY, id, history };
 }
 
-export function getMarketData(platform, type = 'live_graph') {
+export function getMarketData(platform, type = 'live_graph', playerId = null) {
   return async dispatch => {
     if (marketRequest) {
       marketRequest.abort();
       marketRequest = null;
     }
     return new Promise((resolve, reject) => {
+      let url = 'https://www.futbin.com/pages/market/graph.php?';
+      let qs = { type, console: platform.toUpperCase(), _: moment.utc().valueOf() };
+      if (playerId) {
+        url = 'https://www.futbin.com/pages/player/graph.php?';
+        qs = { type, year: 17, player: playerId, _: moment.utc().valueOf() };
+      }
       marketRequest = request.get(
-        {
-          url: 'https://www.futbin.com/pages/market/graph.php?',
-          qs: { type, console: platform.toUpperCase(), _: moment.utc().valueOf() }
-        },
+        { url, qs },
         (error, response, body) => {
           if (error) {
             reject(error);

@@ -180,6 +180,47 @@
       background-color: white;
       .top-bar {
         .widget-bar-style();
+        .menu {
+          display: flex;
+          flex: 0 auto;
+          height: 40px;
+          border-bottom: 1px solid @color-divider;
+          ul {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            justify-content: flex-end;
+            a {
+              color: @gray-normal;
+              cursor: default;
+              outline: none;
+              &.active {
+                li {
+                  font-weight: 500;
+                  border-bottom: 3px solid @brand-primary;
+                  color: @gray-darkest;
+                }
+              }
+              &:hover {
+                text-decoration: none;
+                li {
+                  cursor: default;
+                  color: @gray-darkest;
+                }
+              }
+              &:focus {
+                text-decoration: none;
+              }
+            }
+            li {
+              transition: all 140ms;
+              vertical-align: middle;
+              padding: 0.9rem 1.6rem;
+              display: flex;
+              flex-direction: row;
+            }
+          }
+        }
       }
     }
   }

@@ -1,18 +1,15 @@
-import $ from 'jquery';
 import React, { PropTypes, Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import classNames from 'classnames';
 import ss from 'simple-statistics';
 import { shell } from 'electron';
+import Header from './Header';
 import ConnectedTransfers from './Transfers';
 import Chart from '../Chart';
 import * as BidActions from '../../actions/bid';
 
 export class Overview extends Component {
-  async componentDidMount() {
-    this.handleResize();
-    window.addEventListener('resize', this.handleResize);
+  componentDidMount() {
     // Load Market Data
     this.props.getMarketData(this.props.platform);
   }
@@ -33,25 +30,7 @@ export class Overview extends Component {
     return this.props.bidding !== nextProps.bidding;
   }
 
-  componentDidUpdate() {
-    this.handleResize();
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.handleResize);
-  }
-
-  handleResize() {
-    $('.settings-panel').height(window.innerHeight - 170);
-  }
-
   render() {
-    const tabClasses = classNames({
-      'details-tab': true,
-      active: true,
-      disabled: false
-    });
-
     let liveChartOptions;
     if (this.props.bid.market.data.length) {
       const marketData = this.props.bid.market.data;
@@ -157,41 +136,12 @@ export class Overview extends Component {
 
     return (
       <div className="details">
-        <div>
-          <div className="header-section">
-            <div className="text">
-              Bidding Overview
-            </div>
-          </div>
-          <div className="details-subheader">
-            <div className="details-header-actions">
-              {
-                this.props.bidding
-                ?
-                  (
-                    <div className="action" onClick={() => this.props.stop()}>
-                      <div className="action-icon">
-                        <span className="icon icon-stop" />
-                      </div>
-                      <div className="btn-label">STOP</div>
-                    </div>
-                  )
-                :
-                  (
-                    <div className="action" onClick={() => this.props.start()}>
-                      <div className="action-icon">
-                        <span className="icon icon-start" />
-                      </div>
-                      <div className="btn-label">START</div>
-                    </div>
-                  )
-              }
-            </div>
-            <div className="details-subheader-tabs">
-              <span className={tabClasses}>Current</span>
-            </div>
-          </div>
-        </div>
+        <Header
+          start={this.props.start}
+          stop={this.props.stop}
+          bidding={this.props.bidding}
+          router={this.context.router}
+        />
         <div className="details-panel home">
           <div className="content">
             <ConnectedTransfers />
@@ -238,6 +188,10 @@ Overview.propTypes = {
   start: PropTypes.func.isRequired,
   stop: PropTypes.func.isRequired,
   getMarketData: PropTypes.func.isRequired, // eslint-disable-line react/no-unused-prop-types
+};
+
+Overview.contextTypes = {
+  router: PropTypes.object.isRequired
 };
 
 function mapStateToProps(state) {

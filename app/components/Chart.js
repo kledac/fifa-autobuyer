@@ -16,6 +16,9 @@ class Chart extends Component {
       });
     }
     Highcharts.setOptions({
+      lang: {
+        thousandsSep: ','
+      },
       global: {
         useUTC: false
       }

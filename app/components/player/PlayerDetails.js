@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import _ from 'lodash';
 import moment from 'moment';
-import PlayerDetailsHeader from './PlayerDetailsHeader';
+import Header from './Header';
 import PlayerDetailTable from './PlayerDetailTable';
 import * as PlayerActions from '../../actions/player';
 
@@ -45,7 +45,11 @@ export class PlayerDetails extends Component {
   render() {
     return (
       <div className="details">
-        <PlayerDetailsHeader player={this.player} updatePrice={this.updatePrice.bind(this)} />
+        <Header
+          player={this.player}
+          updatePrice={this.updatePrice.bind(this)}
+          router={this.context.router}
+        />
         <div className="details-panel home">
           <div className="content">
             <div className="full">
@@ -67,6 +71,10 @@ PlayerDetails.propTypes = {
     list: PropTypes.shape({})
   }),
   platform: PropTypes.string,
+};
+
+PlayerDetails.contextTypes = {
+  router: PropTypes.object.isRequired
 };
 
 function mapStateToProps(state) {

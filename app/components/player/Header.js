@@ -1,8 +1,9 @@
 import React, { PropTypes, Component } from 'react';
+import { Link } from 'react-router';
 import classNames from 'classnames';
 import { shell } from 'electron';
 
-class PlayerDetailsHeader extends Component {
+class Header extends Component {
   handleClickPlayerLink() {
     const base = 'https://www.easports.com/fifa/ultimate-team/fut/database/player/';
     shell.openExternal(`${base}${this.props.player.baseId}/${this.props.player.name}#${this.props.player.id}`);
@@ -12,13 +13,11 @@ class PlayerDetailsHeader extends Component {
     const player = this.props.player;
     const tabBioClasses = classNames({
       'details-tab': true,
-      active: true,
-      disabled: false
+      active: !this.props.router.isActive(`/players/${player.id}/history`),
     });
     const tabSettingsClasses = classNames({
       'details-tab': true,
-      active: false,
-      disabled: true
+      active: this.props.router.isActive(`/players/${player.id}/history`),
     });
     return (
       <div>
@@ -43,8 +42,8 @@ class PlayerDetailsHeader extends Component {
             </div>
           </div>
           <div className="details-subheader-tabs">
-            <span className={tabBioClasses}>Bio</span>
-            <span className={tabSettingsClasses}>Settings</span>
+            <span className={tabBioClasses}><Link to={`/players/${player.id}`}>Bio</Link></span>
+            <span className={tabSettingsClasses}><Link to={`/players/${player.id}/history`}>History</Link></span>
           </div>
         </div>
       </div>
@@ -52,13 +51,16 @@ class PlayerDetailsHeader extends Component {
   }
 }
 
-PlayerDetailsHeader.propTypes = {
+Header.propTypes = {
   player: PropTypes.shape({
     id: PropTypes.int,
     baseId: PropTypes.int,
     name: PropTypes.string
   }),
-  updatePrice: PropTypes.func.isRequired
+  updatePrice: PropTypes.func.isRequired,
+  router: PropTypes.shape({
+    isActive: PropTypes.func
+  }),
 };
 
-export default PlayerDetailsHeader;
+export default Header;
