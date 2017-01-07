@@ -6,7 +6,6 @@ import classNames from 'classnames';
 import moment from 'moment';
 import Header from './Header';
 import Chart from '../Chart';
-import { findPrice } from '../../actions/player';
 import { getMarketData } from '../../actions/bid';
 
 export class PlayerHistory extends Component {
@@ -270,7 +269,6 @@ export class PlayerHistory extends Component {
 }
 
 PlayerHistory.propTypes = {
-  findPrice: PropTypes.func.isRequired,
   getMarketData: PropTypes.func.isRequired,
   platform: PropTypes.string,
   params: PropTypes.shape({
@@ -299,7 +297,7 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators({ findPrice, getMarketData }, dispatch);
+  return bindActionCreators({ getMarketData }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlayerHistory);
