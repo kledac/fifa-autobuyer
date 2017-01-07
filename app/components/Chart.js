@@ -56,7 +56,7 @@ Chart.propTypes = {
   container: PropTypes.string,
   type: PropTypes.string,
   options: PropTypes.shape({}),
-  modules: PropTypes.arrayOf(PropTypes.shape({})),
+  modules: PropTypes.arrayOf(PropTypes.func),
 };
 
 export default Chart;

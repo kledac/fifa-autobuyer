@@ -78,7 +78,7 @@ describe('actions', () => {
       });
 
       it('should dispatch SET_PILESIZE when getPilesize is completed', () => {
-        // Mock credits response
+        // Mock pilesize response
         const response = { entries: [{ key: 2, value: 30 }, { key: 4, value: 30 }] };
         nock('https://utas.external.s3.fut.ea.com')
           .post(`/ut/game/fifa${version}/clientdata/pileSize`)
