@@ -47,14 +47,6 @@ export class PlayerHistory extends Component {
     }
   }
 
-  updatePrice(force = false) {
-    const price = this.player.price || {};
-    const lastUpdated = moment(price.updated || 0);
-    if (force || !price.buy || moment().isAfter(lastUpdated.add(1, 'h'))) {
-      this.props.findPrice(this.player.id);
-    }
-  }
-
   render() {
     const history = Object.values(this.player.history);
 
@@ -185,7 +177,6 @@ export class PlayerHistory extends Component {
       <div className="details">
         <Header
           player={this.player}
-          updatePrice={this.updatePrice.bind(this)}
           router={this.context.router}
         />
         <div className="details-panel home">

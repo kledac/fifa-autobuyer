@@ -28,12 +28,20 @@ class Header extends Component {
         </div>
         <div className="details-subheader">
           <div className="details-header-actions">
-            <div className="action" onClick={() => this.props.updatePrice(true)}>
-              <div className="action-icon">
-                <span className="icon icon-restart" />
-              </div>
-              <div className="btn-label">UPDATE</div>
-            </div>
+            {
+              this.props.updatePrice
+              ?
+              (
+                <div className="action" onClick={() => this.props.updatePrice(true)}>
+                  <div className="action-icon">
+                    <span className="icon icon-restart" />
+                  </div>
+                  <div className="btn-label">UPDATE</div>
+                </div>
+              )
+              :
+              null
+            }
             <div className="action" onClick={this.handleClickPlayerLink.bind(this)}>
               <div className="action-icon">
                 <span className="icon icon-open-external" />
@@ -57,7 +65,7 @@ Header.propTypes = {
     baseId: PropTypes.int,
     name: PropTypes.string
   }),
-  updatePrice: PropTypes.func.isRequired,
+  updatePrice: PropTypes.func,
   router: PropTypes.shape({
     isActive: PropTypes.func
   }),
