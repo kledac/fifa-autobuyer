@@ -36,6 +36,12 @@ describe('actions', () => {
           { type: types.REMOVE_PLAYER, player }
         );
       });
+
+      it('clear should create CLEAR_LIST action', () => {
+        expect(actions.clear()).to.eql(
+          { type: types.CLEAR_LIST }
+        );
+      });
     });
     describe('async creators', () => {
       afterEach(() => {
@@ -79,6 +85,9 @@ describe('actions', () => {
           player: {
             search: {},
             list: {}
+          },
+          settings: {
+            autoUpdate: true
           }
         };
 
