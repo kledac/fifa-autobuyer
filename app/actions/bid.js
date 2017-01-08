@@ -3,6 +3,7 @@ import moment from 'moment';
 import Fut from 'fut-promise';
 import request from 'request';
 import * as types from './bidTypes';
+import cycle from './logic';
 import { getApi } from '../utils/ApiUtil';
 import { setCredits } from './account';
 import { findPrice } from './player';
@@ -10,15 +11,11 @@ import { findPrice } from './player';
 const filter = {
   type: 'player',
   start: 0,
-  num: 50,
+  num: 16,
 };
 
 let cycleTimeout;
 let marketRequest;
-
-export function addMessage(msg) {
-  return { type: types.ADD_MESSAGE, timestamp: new Date(), msg };
-}
 
 export function start() {
   return async dispatch => {
@@ -56,147 +53,84 @@ export function updateTrades(id, tradeResult) {
   return { type: types.UPDATE_TRADES, id, tradeResult };
 }
 
-export function cycle() {
+export function setBINStatus(won) {
+  return { type: types.SET_BIN_STATUS, won };
+}
+
+export function snipe(player, settings) {
   return async (dispatch, getState) => {
     let state = getState();
-
-    // Get unassigned and watchlist here only on first cycle
-    if (state.bid.cycles === 0) {
-      await dispatch(getUnassigned(state.account.email));
-      await dispatch(getWatchlist(state.account.email));
-      state = getState();
+    const api = getApi(state.account.email);
+    console.log('Preparing to snipe...');
+    // Snipe
+    const binFilter = _.merge({}, filter, {
+      definitionId: player.id,
+      maxb: player.price.buy,
+    });
+    let binResponse;
+    try {
+      binResponse = await api.search(binFilter);
+    } catch (e) {
+      console.error('Error searching for BIN', e);
+      binResponse = { auctionInfo: [] };
     }
-
-    // Get tradepile at beginning of every cycle
-    await dispatch(getTradepile(state.account.email));
-
-    // Increment cycle count
-    dispatch(setCycleCount(state.bid.cycles + 1));
-
-    // Get the player list
-    const playerList = state.player.list;
-
-    // Keep a manual record of our watched trades
-    // let trades = _.keyBy(state.bid.watchlist, 'tradeId');
-    dispatch(setTrades(_.keyBy(state.bid.watchlist, 'tradeId')));
-    // Loop players
-    for (const player of Object.values(playerList)) {
-      // refresh state every player
+    console.log(`${binResponse.auctionInfo.length} BIN found...`);
+    for (const trade of binResponse.auctionInfo) {
+      // refresh state every trade
       state = getState();
-
-      // Setup API
-      const settings = _.merge({}, state.settings, player.settings);
-      const api = getApi(state.account.email, settings.rpm);
-
-      // How many of this player is already listed
-      // const listed = _.countBy(
-      //   state.bid.tradepile,
-      //   trade => Fut.getBaseId(trade.itemData.resourceId)
-      // );
-      dispatch(setListed(_.countBy(
-        state.bid.tradepile,
-        trade => Fut.getBaseId(trade.itemData.resourceId)
-      )));
-
-      // const watched = _.countBy(
-      //   state.bid.watchlist,
-      //   trade => Fut.getBaseId(trade.itemData.resourceId)
-      // );
-      dispatch(setWatched(_.countBy(
-        state.bid.watchlist,
-        trade => Fut.getBaseId(trade.itemData.resourceId)
-      )));
-
-      // Update prices every hour if auto update price is enabled
-      await dispatch(updatePrice(player, settings));
-
-      // Only bid if we don't already have a full trade pile and don't own too many of this player
-      let binWon = !!state.bid.unassigned.length;
+      console.log('The watched is:');
+      console.log(state.bid.watched);
       if (
+        // We are still bidding
         state.bid.bidding
-        && state.bid.tradepile.length < state.account.pilesize.tradepile
+        // We have enough credits
         && state.account.credits > settings.minCredits
+        // We are below our cap for this player
         && _.get(state.bid.listed, player.id, 0) < settings.maxCard
+        // The card has at least one contract
+        && trade.itemData.contract > 0
       ) {
-        console.log('Preparing to snipe...');
-        // Snipe
-        const binFilter = _.merge({}, filter, {
-          definitionId: player.id,
-          maxb: player.price.buy,
-        });
-        let binResponse;
+        // Buy it!
+        let tradeResult = {};
         try {
-          binResponse = await api.search(binFilter);
+          const snipeResponse = await api.placeBid(trade.tradeId, trade.buyNowPrice);
+          dispatch(setCredits(snipeResponse.credits));
+          tradeResult = snipeResponse.auctionInfo[0] || {};
         } catch (e) {
-          console.error('Error searching for BIN', e);
-          binResponse = { auctionInfo: [] };
+          console.error('Error placing BIN bid', e);
         }
-        console.log(`${binResponse.auctionInfo.length} BIN found...`);
-        for (const trade of binResponse.auctionInfo) {
-          // refresh state every trade
-          state = getState();
-          console.log('The watched is:');
-          console.log(state.bid.watched);
-          if (
-            // We are still bidding
-            state.bid.bidding
-            // We have enough credits
-            && state.account.credits > settings.minCredits
-            // We are below our cap for this player
-            && _.get(state.bid.listed, player.id, 0) < settings.maxCard
-            // The card has at least one contract
-            && trade.itemData.contract > 0
-          ) {
-            // Buy it!
-            let tradeResult = {};
-            try {
-              const snipeResponse = await api.placeBid(trade.tradeId, trade.buyNowPrice);
-              dispatch(setCredits(snipeResponse.credits));
-              tradeResult = snipeResponse.auctionInfo[0] || {};
-            } catch (e) {
-              console.error('Error placing BIN bid', e);
-            }
-            // tradeResult = {
-            //   bidState: 'buyNow',
-            //   tradeState: 'closed',
-            //   tradeId: trade.tradeId,
-            //   currentBid: trade.buyNowPrice
-            // };
-            // Was this a success?
-            if (tradeResult.tradeState === 'closed' && tradeResult.bidState === 'buyNow') {
-              console.log(`Bought for BIN (${trade.buyNowPrice}) on ${trade.tradeId}`);
-              binWon = true;
-              // Increment number of trades won
-              if (state.bid.listed[player.id] === undefined) {
-                // listed[player.id] = 1;
-                dispatch(updateListed(player.id, 1));
-              } else {
-                // listed[player.id] += 1;
-                dispatch(updateListed(player.id, state.bid.listed[player.id] + 1));
-              }
-            } else {
-              // TODO: do something about this
-              console.warn(`Could not snipe ${trade.tradeId}`);
-            }
+        // tradeResult = {
+        //   bidState: 'buyNow',
+        //   tradeState: 'closed',
+        //   tradeId: trade.tradeId,
+        //   currentBid: trade.buyNowPrice
+        // };
+        // Was this a success?
+        if (tradeResult.tradeState === 'closed' && tradeResult.bidState === 'buyNow') {
+          console.log(`Bought for BIN (${trade.buyNowPrice}) on ${trade.tradeId}`);
+          dispatch(setBINStatus(true));
+          // Increment number of trades won
+          if (state.bid.listed[player.id] === undefined) {
+            // listed[player.id] = 1;
+            dispatch(updateListed(player.id, 1));
+          } else {
+            // listed[player.id] += 1;
+            dispatch(updateListed(player.id, state.bid.listed[player.id] + 1));
           }
+        } else {
+          // TODO: do something about this
+          console.warn(`Could not snipe ${trade.tradeId}`);
         }
-
-        // Place bids
-        await dispatch(placeBid(player, settings, api));
       }
-
-      // Update items always when bidding
-      await dispatch(updateItems(player, settings, api, binWon));
     }
-    // keep going
-    await dispatch(keepBidding());
   };
 }
 
-export function placeBid(player, settings, api) {
+export function placeBid(player, settings) {
   return async (dispatch, getState) => {
     if (!settings.snipeOnly) {
       let state = getState();
+      const api = getApi(state.account.email);
       console.log('Getting ready to search auctions...');
       const bidFilter = _.merge({}, filter, {
         definitionId: player.id,
@@ -289,9 +223,10 @@ export function placeBid(player, settings, api) {
   };
 }
 
-export function updateItems(player, settings, api, binWon) {
+export function updateItems(player, settings) {
   return async (dispatch, getState) => {
     let state = getState();
+    const api = getApi(state.account.email);
     if (state.bid.bidding) {
       // Update watched items
       await dispatch(getWatchlist(state.account.email));
@@ -361,7 +296,10 @@ export function updateItems(player, settings, api, binWon) {
               state = getState();
               // We were outbid
               const newBid = Fut.calculateNextHigherPrice(item.currentBid);
-              if (newBid > trackedPlayer.price.buy || state.bid.listed[baseId] >= settings.maxPlayer) {
+              if (
+                newBid > trackedPlayer.price.buy
+                || state.bid.listed[baseId] >= settings.maxPlayer
+              ) {
                 // Remove from list if new bid is too high, or we already have too many listed
                 try {
                   await api.removeFromWatchlist(item.tradeId);
@@ -392,9 +330,10 @@ export function updateItems(player, settings, api, binWon) {
       }
 
       // buy now goes directly to unassigned now
-      if (binWon) {
+      if (state.bid.binWon) {
         await dispatch(getUnassigned(state.account.email));
         state = getState();
+        dispatch(setBINStatus(!!state.bid.unassigned.length));
         for (const i of state.bid.unassigned) {
           const baseId = Fut.getBaseId(i.resourceId);
           const trackedPlayer = _.get(state.player, `list.${baseId}`, false);

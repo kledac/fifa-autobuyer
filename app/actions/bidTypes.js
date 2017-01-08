@@ -18,3 +18,4 @@ export const SET_LISTED = 'bid/set/listed';
 export const UPDATE_LISTED = 'bid/update/listed';
 export const SET_TRADES = 'bid/set/trades';
 export const UPDATE_TRADES = 'bid/set/trades';
+export const SET_BIN_STATUS = 'bid/set/binStatus';

@@ -65,6 +65,10 @@ export function bid(state = initialState, action) {
       nextState = _.merge({}, state);
       _.set(nextState, `trades.${action.id}`, action.tradeResult);
       return nextState;
+    case types.SET_BIN_STATUS:
+      nextState = _.merge({}, state);
+      _.set(nextState, 'binWon', action.won);
+      return nextState;
     default:
       return state;
   }
