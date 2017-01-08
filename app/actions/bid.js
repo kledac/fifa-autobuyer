@@ -86,7 +86,7 @@ export function snipe(player, settings) {
         // We have enough credits
         && state.account.credits > settings.minCredits
         // We are below our cap for this player
-        && _.get(state.bid.listed, player.id, 0) < settings.maxCard
+        && _.get(state, `bid.listed.${player.id}`, 0) < settings.maxCard
         // The card has at least one contract
         && trade.itemData.contract > 0
       ) {
