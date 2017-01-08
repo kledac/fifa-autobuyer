@@ -6,6 +6,9 @@ const initialState = {
   cycles: 0,
   tradepile: [],
   watchlist: [],
+  watched: {},
+  listed: {},
+  trades: {},
   unassigned: [],
   market: {
     data: [],
@@ -40,6 +43,27 @@ export function bid(state = initialState, action) {
     case types.SAVE_MARKET_DATA:
       nextState = _.merge({}, state);
       _.set(nextState, 'market', action.market);
+      return nextState;
+    case types.SET_WATCH:
+      nextState = _.merge({}, state, { watched: action.watched });
+      return nextState;
+    case types.UPDATE_WATCH:
+      nextState = _.merge({}, state);
+      _.set(nextState, `watched.${action.id}`, action.count);
+      return nextState;
+    case types.SET_LISTED:
+      nextState = _.merge({}, state, { listed: action.listed });
+      return nextState;
+    case types.UPDATE_LISTED:
+      nextState = _.merge({}, state);
+      _.set(nextState, `listed.${action.id}`, action.count);
+      return nextState;
+    case types.SET_TRADES:
+      nextState = _.merge({}, state, { trades: action.trades });
+      return nextState;
+    case types.UPDATE_TRADES:
+      nextState = _.merge({}, state);
+      _.set(nextState, `trades.${action.id}`, action.tradeResult);
       return nextState;
     default:
       return state;
