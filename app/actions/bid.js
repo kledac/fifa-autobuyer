@@ -78,8 +78,6 @@ export function snipe(player, settings) {
     for (const trade of binResponse.auctionInfo) {
       // refresh state every trade
       state = getState();
-      console.log('The watched is:');
-      console.log(state.bid.watched);
       if (
         // We are still bidding
         state.bid.bidding
@@ -150,8 +148,6 @@ export function placeBid(player, settings) {
         // TODO: Increment page number and search again
       }
       for (const trade of last5Min) {
-        console.log('trade');
-        console.log(trade);
         // refresh state every trade
         state = getState();
         if (
@@ -219,6 +215,8 @@ export function placeBid(player, settings) {
           }
         }
       }
+    } else {
+      console.log('No Bids, only Snipes');
     }
   };
 }
