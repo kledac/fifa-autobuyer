@@ -176,7 +176,8 @@ export const totwPlayer = {
       sold: 269000,
       soldAt: 142356789
     }
-  }
+  },
+  settings: {}
 };
 
 export default {
@@ -363,5 +364,6 @@ export default {
       sold: 1450000,
       soldAt: 142356789
     }
-  }
+  },
+  settings: {}
 };
