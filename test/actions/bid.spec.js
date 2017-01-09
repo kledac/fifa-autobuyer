@@ -635,17 +635,19 @@ describe('actions', () => {
             }
           }]
         });
-        const auctionInfo = [{ itemData: { tradeId: 12345, resourceId: 111 } }];
+        const auctionInfo = [{ itemData: { tradeId: 12345, resourceId: 111, tradeState: 'expired' } }];
         const getWatchlistStub = sandbox.stub().returns({ credits: 1, auctionInfo });
         const getStatusStub = sandbox.stub().returns({ credits: 4999, auctionInfo });
+        const relistStub = sandbox.stub().returns({ code: 200 });
         const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
           search: searchStub,
           placeBid: bidStub,
           getWatchlist: getWatchlistStub,
-          getStatus: getStatusStub
+          getStatus: getStatusStub,
+          relist: relistStub
         });
 
-        const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);       
+        const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
         const initialState = {
           account: {
             email: 'test@test.com',
@@ -655,14 +657,22 @@ describe('actions', () => {
             bidding: true,
             listed: {},
             watchlist: auctionInfo,
-            trades: _.keyBy(auctionInfo, 'tradeId')
+            trades: _.keyBy(auctionInfo, 'tradeId'),
+            tradepile: [
+              {
+                tradeState: 'expired',
+                itemData: {
+                  itemState: 'notFree'
+                }
+              }
+            ]
           },
           player: bidPlayer
         };
-        const settings = { minCredits: 1000, maxCard: 5 };
+        const settings = { minCredits: 1000, maxCard: 5, relistAll: true };
         const store = mockStore(initialState);
         await store.dispatch(actions.updateItems(bidPlayer, settings));
-        expect(apiStub.calledOnce).to.eql(true);
+        expect(apiStub.called).to.eql(true);
         expect(getWatchlistStub.calledOnce).to.eql(true);
         expect(getBaseIdStub.calledOnce).to.eql(true);
         // expect(store.getActions()).to.be.eql(
