@@ -57,15 +57,9 @@ export class PlayerSearch extends Component {
 
     if (query !== '') {
       this.setState({ loading: true });
-      // Search immediately for tests
-      /* istanbul ignore else */
-      if (process.env.NODE_ENV === 'test') {
+      searchTimeout = window.setTimeout(() => {
         this.props.search(query, page);
-      } else {
-        searchTimeout = window.setTimeout(() => {
-          this.props.search(query, page);
-        }, 500);
-      }
+      }, 500);
     }
   }
 

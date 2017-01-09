@@ -151,6 +151,29 @@ describe('actions', () => {
         expect(store.getActions().length).to.eql(0);
       });
 
+      it('should handle Error thrown in api.search() when snipe() is called', async () => {
+        const searchStub = sandbox.stub().throws();
+        const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
+          search: searchStub
+        });
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            bidding: true,
+            listed: {}
+          }
+        };
+        const settings = { minCredits: 1000, maxCard: 5 };
+        const store = mockStore(initialState);
+        await store.dispatch(actions.snipe(player, settings));
+        expect(apiStub.calledOnce).to.eql(true);
+        expect(searchStub.calledOnce).to.eql(true);
+        expect(store.getActions().length).to.eql(0);
+      });
+
       it('should not buy card when snipe() is called if not enough credits', async () => {
         const searchStub = sandbox.stub().returns({ auctionInfo: [{
           tradeId: 12345,
@@ -321,6 +344,38 @@ describe('actions', () => {
         ]);
       });
 
+      it('should handle Error in api.placeBid when snipe() is called', async () => {
+        const searchStub = sandbox.stub().returns({ auctionInfo: [{
+          tradeId: 12345,
+          buyNowPrice: 1,
+          itemData: {
+            contract: 1
+          }
+        }] });
+        const bidStub = sandbox.stub().throws();
+        const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
+          search: searchStub,
+          placeBid: bidStub
+        });
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            bidding: true,
+            listed: {}
+          }
+        };
+        const settings = { minCredits: 1000, maxCard: 5 };
+        const store = mockStore(initialState);
+        await store.dispatch(actions.snipe(player, settings));
+        expect(apiStub.calledOnce).to.eql(true);
+        expect(searchStub.calledOnce).to.eql(true);
+        expect(bidStub.calledOnce).to.eql(true);
+        expect(store.getActions().length).to.eql(0);
+      });
+
       it('should not place bid if snipeOnly setting is set when placeBid() is called', async () => {
         const searchStub = sandbox.stub().returns({ auctionInfo: [{
           tradeId: 12345,
@@ -355,12 +410,12 @@ describe('actions', () => {
             listed: {}
           }
         };
-        const settings = { minCredits: 10000, maxCard: 5, snipeOnly: true };
+        const settings = { minCredits: 1000, maxCard: 5, snipeOnly: true };
         const store = mockStore(initialState);
         await store.dispatch(actions.placeBid(player, settings));
-        // expect(apiStub.calledOnce).to.eql(true);
-        // expect(searchStub.calledOnce).to.eql(true);
-        // expect(bidStub.called).to.eql(false);
+        expect(apiStub.called).to.eql(false);
+        expect(searchStub.called).to.eql(false);
+        expect(bidStub.called).to.eql(false);
         expect(store.getActions().length).to.eql(0);
       });
 
@@ -412,7 +467,6 @@ describe('actions', () => {
         await store.dispatch(actions.placeBid(bidPlayer, settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(highestPriceStub.calledOnce).to.eql(true);
-        console.log(store.getActions());
         expect(store.getActions()).to.be.eql(
           [
             accountActions.setCredits(4999),
@@ -429,6 +483,48 @@ describe('actions', () => {
             actions.updateWatched(bidPlayer.id, 1)
           ]
         );
+      });
+
+      it('should handle Error in api.placeBid() when placeBid() is called', async () => {
+        const searchStub = sandbox.stub().returns({ auctionInfo: [{
+          tradeId: 12345,
+          buyNowPrice: 1,
+          expires: 250,
+          currentBid: 1,
+          itemData: {
+            contract: 1
+          }
+        }] });
+        const bidStub = sandbox.stub().throws();
+
+        const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
+          search: searchStub,
+          placeBid: bidStub
+        });
+
+        const highestPriceStub = sandbox.stub(Fut, 'calculateNextHigherPrice').returns(3);
+
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 50000
+          },
+          bid: {
+            bidding: true,
+            listed: {},
+            watched: {},
+            trades: {}
+          }
+        };
+
+        const settings = { minCredits: 10000, maxCard: 5, snipeOnly: false };
+        const store = mockStore(initialState);
+        await store.dispatch(actions.placeBid(bidPlayer, settings));
+        expect(apiStub.calledOnce).to.eql(true);
+        expect(searchStub.calledOnce).to.eql(true);
+        expect(highestPriceStub.calledOnce).to.eql(true);
+        expect(bidStub.calledOnce).to.eql(true);
+        expect(store.getActions().length).to.eql(0);
       });
 
       it('should not keep bidding when state.bid.bidding is false when keepBidding() is called', async () => {
@@ -471,7 +567,6 @@ describe('actions', () => {
       });
 
       it('should not updatePrice if autoUpdate is false when updatePrice() is called', async () => {
-
         const initialState = {
           account: {
             email: 'test@test.com',
