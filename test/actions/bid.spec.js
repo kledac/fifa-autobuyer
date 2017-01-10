@@ -6,7 +6,7 @@ import moment from 'moment';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import _ from 'lodash';
-
+import request from 'request';
 import * as actions from '../../app/actions/bid';
 import * as accountActions from '../../app/actions/account';
 import * as playerActions from '../../app/actions/player';
@@ -19,6 +19,7 @@ const middlewares = [thunk];
 const mockStore = configureMockStore(middlewares);
 
 let sandbox;
+let clock;
 describe('actions', () => {
   describe('bid', () => {
     describe('creators', () => {
@@ -112,9 +113,11 @@ describe('actions', () => {
     describe('async creators', () => {
       beforeEach(() => {
         sandbox = sinon.sandbox.create();
+        clock = sinon.useFakeTimers();
       });
       afterEach(() => {
         sandbox.restore();
+        clock.restore();
       });
 
       it('should reset cycle count and call cycle() when start() is called', async () => {
@@ -419,7 +422,30 @@ describe('actions', () => {
         expect(store.getActions().length).to.eql(0);
       });
 
-      it('should place bid when placeBid() is called', async () => {
+      it('should handle Error thrown in api.search() when placeBid() is called', async () => {
+        const searchStub = sandbox.stub().throws();
+        const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
+          search: searchStub
+        });
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            bidding: true,
+            listed: {}
+          }
+        };
+        const settings = { minCredits: 1000, maxCard: 5 };
+        const store = mockStore(initialState);
+        await store.dispatch(actions.placeBid(player, settings));
+        expect(apiStub.calledOnce).to.eql(true);
+        expect(searchStub.calledOnce).to.eql(true);
+        expect(store.getActions().length).to.eql(0);
+      });
+
+      it('should place bid when placeBid() is called with existing bid', async () => {
         const searchStub = sandbox.stub().returns({ auctionInfo: [{
           tradeId: 12345,
           buyNowPrice: 1,
@@ -485,6 +511,73 @@ describe('actions', () => {
         );
       });
 
+      it('should place bid when placeBid() is called with no current bid and a player already watched', async () => {
+        const searchStub = sandbox.stub().returns({ auctionInfo: [{
+          tradeId: 12345,
+          buyNowPrice: 1,
+          expires: 250,
+          currentBid: 0,
+          startingBid: 1,
+          itemData: {
+            contract: 1
+          }
+        }] });
+        const bidStub = sandbox.stub().returns({
+          credits: 4999,
+          auctionInfo: [{
+            tradeId: 12345,
+            tradeState: 'closed',
+            bidState: 'highest',
+            buyNowPrice: 1,
+            itemData: {
+              contract: 1
+            }
+          }]
+        });
+
+        const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
+          search: searchStub,
+          placeBid: bidStub
+        });
+
+        const highestPriceStub = sandbox.stub(Fut, 'calculateNextHigherPrice').returns(3);
+
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 50000
+          },
+          bid: {
+            bidding: true,
+            listed: {},
+            watched: { 20801: 2 },
+            trades: {}
+          }
+        };
+
+        const settings = { minCredits: 10000, maxCard: 5, snipeOnly: false };
+        const store = mockStore(initialState);
+        await store.dispatch(actions.placeBid(bidPlayer, settings));
+        expect(apiStub.calledOnce).to.eql(true);
+        expect(highestPriceStub.called).to.eql(false);
+        expect(store.getActions()).to.be.eql(
+          [
+            accountActions.setCredits(4999),
+            actions.updateListed(12345, {
+              tradeId: 12345,
+              tradeState: 'closed',
+              bidState: 'highest',
+              buyNowPrice: 1,
+              itemData: {
+                contract: 1
+              }
+            }),
+            actions.setWatchlist([]),
+            actions.updateWatched(bidPlayer.id, 3)
+          ]
+        );
+      });
+
       it('should handle Error in api.placeBid() when placeBid() is called', async () => {
         const searchStub = sandbox.stub().returns({ auctionInfo: [{
           tradeId: 12345,
@@ -543,6 +636,54 @@ describe('actions', () => {
         const store = mockStore(initialState);
         await store.dispatch(actions.keepBidding());
         expect(logicStub.calledOnce).to.eql(false);
+      });
+
+      it('should wait max 60 seconds if credits are < minCredits when keepBidding() is called', async () => {
+        const logicStub = sandbox.stub(logic, 'default').returns(() => {});
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            bidding: true,
+            watchlist: [],
+            tradepile: [{ expires: 180 }]
+          },
+          settings: {
+            minCredits: 10000
+          }
+        };
+
+        const store = mockStore(initialState);
+        await store.dispatch(actions.keepBidding());
+        expect(logicStub.called).to.eql(false);
+        clock.tick(60000);
+        expect(logicStub.calledOnce).to.eql(true);
+      });
+
+      it('should wait min lowest expires time if credits are < minCredits when keepBidding() is called', async () => {
+        const logicStub = sandbox.stub(logic, 'default').returns(() => {});
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            bidding: true,
+            watchlist: [],
+            tradepile: [{ expires: 5 }]
+          },
+          settings: {
+            minCredits: 10000
+          }
+        };
+
+        const store = mockStore(initialState);
+        await store.dispatch(actions.keepBidding());
+        expect(logicStub.called).to.eql(false);
+        clock.tick(5000);
+        expect(logicStub.calledOnce).to.eql(true);
       });
 
       it('should keep bidding and not wait when account credits are > minCredits when keepBidding() is called', async () => {
@@ -773,6 +914,176 @@ describe('actions', () => {
         // expect(store.getActions()).to.be.eql(
         //   [accountActions.setCredits(1), { type: types.SET_UNASSIGNED, unassigned: itemData }]
         // );
+      });
+
+      it('should handle clearing existing timer when stop() is called', async () => {
+        const logicStub = sandbox.stub(logic, 'default').returns(() => {});
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            bidding: true,
+            watchlist: [],
+            tradepile: [{ expires: 180 }]
+          },
+          settings: {
+            minCredits: 10000
+          }
+        };
+
+        const store = mockStore(initialState);
+        await store.dispatch(actions.keepBidding());
+        await store.dispatch(actions.stop());
+        clock.tick(60000);
+        expect(logicStub.called).to.eql(false);
+        expect(store.getActions()).to.eql([
+          { type: types.STOP_BIDDING }
+        ]);
+      });
+
+      it('should handle request error when getMarketData() is called', async () => {
+        const requestStub = sandbox.stub(request, 'get').yields(new Error('fail'), { statusCode: 500 }, null);
+
+        const store = mockStore({});
+        await store.dispatch(actions.getMarketData('xone'));
+        expect(requestStub.calledOnce).to.eql(true);
+        expect(store.getActions().length).to.eql(0);
+      });
+
+      it('should dispatch SAVE_MARKET_DATA with live_graph data when getMarketData() is called', async () => {
+        const requestStub = sandbox.stub(request, 'get').yields(
+          null,
+          { statusCode: 200 },
+          '{"xbox":[[1483928220000,51.86],[1483928280000,51.84],[1483928340000,51.81]],"ps":[],"flags":[],"title":"Index100 Fluctuation"}'
+        );
+
+        const store = mockStore({});
+        await store.dispatch(actions.getMarketData('xone'));
+        expect(requestStub.calledOnce).to.eql(true);
+        expect(store.getActions()).to.eql([
+          {
+            type: types.SAVE_MARKET_DATA,
+            market: {
+              data: [[1483928220000, 51.86], [1483928280000, 51.84], [1483928340000, 51.81]],
+              flags: [],
+              title: 'Index100 Fluctuation'
+            }
+          }
+        ]);
+      });
+
+      it('should dispatch SAVE_MARKET_DATA with daily_graph data when getMarketData() is called', async () => {
+        const requestStub = sandbox.stub(request, 'get').yields(
+          null,
+          { statusCode: 200 },
+          '{"xbox":[[1483747200000,1383],[1483833600000,1433],[1483920000000,1333]],"ps":[[1483747200000,1400],[1483833600000,1329],[1483920000000,1288]],"flags":[{"design":1,"title":"test1","description":"test1","flag_date":"2017-01-09 09:31:00"},{"design":2,"title":"test2","description":"test2","flag_date":"2017-01-09 09:31:00"},{"design":3,"title":"test3","description":"test3","flag_date":"2017-01-09 09:31:00"}],"title":"Daily Price Fluctuation"}'
+        );
+
+        const store = mockStore({});
+        await store.dispatch(actions.getMarketData('xone', 'daily_graph', player.id));
+        expect(requestStub.calledOnce).to.eql(true);
+        expect(store.getActions()).to.eql([
+          {
+            type: types.SAVE_MARKET_DATA,
+            market: {
+              data: [[1483747200000, 1383], [1483833600000, 1433], [1483920000000, 1333]],
+              flags: [
+                {
+                  color: '#000',
+                  fillColor: '#000',
+                  style: {
+                    borderRadius: 5,
+                    color: '#dcb20a'
+                  },
+                  text: 'test1',
+                  title: 'test1',
+                  x: 1483954260000
+                },
+                {
+                  color: '#046aaf',
+                  fillColor: '#046aaf',
+                  style: {
+                    borderRadius: 5,
+                    color: '#fff'
+                  },
+                  text: 'test2',
+                  title: 'test2',
+                  x: 1483954260000
+                },
+                {
+                  color: '#00591b',
+                  fillColor: '#00591b',
+                  style: {
+                    borderRadius: 5,
+                    color: '#fff'
+                  },
+                  text: 'test3',
+                  title: 'test3',
+                  x: 1483954260000
+                }
+              ],
+              title: 'Daily Price Fluctuation'
+            }
+          }
+        ]);
+      });
+
+      it('should dispatch SAVE_MARKET_DATA with ps daily_graph data when getMarketData() is with ps4', async () => {
+        const requestStub = sandbox.stub(request, 'get').yields(
+          null,
+          { statusCode: 200 },
+          '{"xbox":[[1483747200000,1383],[1483833600000,1433],[1483920000000,1333]],"ps":[[1483747200000,1400],[1483833600000,1329],[1483920000000,1288]],"flags":[{"design":4,"title":"test4","description":"test4","flag_date":"2017-01-09 09:31:00"},{"design":"5","title":"test5","description":"test5","flag_date":"2017-01-09 09:31:00"},{"design":"6","title":"test6","description":"test6","flag_date":"2017-01-09 09:31:00"}],"title":"Daily Price Fluctuation"}'
+        );
+
+        const store = mockStore({});
+        await store.dispatch(actions.getMarketData('ps4', 'daily_graph', player.id));
+        expect(requestStub.calledOnce).to.eql(true);
+        expect(store.getActions()).to.eql([
+          {
+            type: types.SAVE_MARKET_DATA,
+            market: {
+              data: [[1483747200000, 1400], [1483833600000, 1329], [1483920000000, 1288]],
+              flags: [
+                {
+                  color: '#6099e6',
+                  fillColor: '#6099e6',
+                  style: {
+                    borderRadius: 5,
+                    color: '#fff'
+                  },
+                  text: 'test4',
+                  title: 'test4',
+                  x: 1483954260000
+                },
+                {
+                  color: '#4f3581',
+                  fillColor: '#4f3581',
+                  style: {
+                    borderRadius: 5,
+                    color: '#fff'
+                  },
+                  text: 'test5',
+                  title: 'test5',
+                  x: 1483954260000
+                },
+                {
+                  color: '#fff',
+                  fillColor: '#000',
+                  style: {
+                    borderRadius: 5,
+                    color: '#fff'
+                  },
+                  text: 'test6',
+                  title: 'test6',
+                  x: 1483954260000
+                }
+              ],
+              title: 'Daily Price Fluctuation'
+            }
+          }
+        ]);
       });
     });
   });

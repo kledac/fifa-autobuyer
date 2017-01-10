@@ -17,12 +17,6 @@ window.localStorage = window.sessionStorage = {
     this[key] = undefined;
   },
 };
-window.setTimeout = callback => {
-  callback();
-  // return a random number between 111111 and 999999
-  return Math.floor(Math.random() * ((999999 - 111111) + 1)) + 111111;
-};
-window.clearTimeout = () => {};
 
 // Mock Electron
 mockery.enable({ warnOnUnregistered: false });

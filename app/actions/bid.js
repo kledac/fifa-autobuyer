@@ -518,8 +518,17 @@ export function updateHistory(id, history) {
   return { type: types.UPDATE_PLAYER_HISTORY, id, history };
 }
 
+export function stop() {
+  if (cycleTimeout) {
+    window.clearTimeout(cycleTimeout);
+    cycleTimeout = undefined;
+  }
+  return { type: types.STOP_BIDDING };
+}
+
 export function getMarketData(platform, type = 'live_graph', playerId = null) {
   return async dispatch => {
+    /* istanbul ignore if */
     if (marketRequest) {
       marketRequest.abort();
       marketRequest = null;
@@ -556,28 +565,20 @@ export function getMarketData(platform, type = 'live_graph', playerId = null) {
       }
       // Map flags
       const fillFlagColor = function fillFlagColor(design) {
-        let graphColorArr = [];
-        switch (design) {
-          case '1':
-            graphColorArr = ['#000', '#000', '#dcb20a'];
-            break;
-          case '2':
-            graphColorArr = ['#046aaf', '#046aaf', '#fff'];
-            break;
-          case '3':
-            graphColorArr = ['#00591b', '#00591b', '#fff'];
-            break;
-          case '4':
-            graphColorArr = ['#6099e6', '#6099e6', '#fff'];
-            break;
-          case '5':
-            graphColorArr = ['#4f3581', '#4f3581', '#fff'];
-            break;
+        switch (parseInt(design, 10)) {
+          case 1:
+            return ['#000', '#000', '#dcb20a'];
+          case 2:
+            return ['#046aaf', '#046aaf', '#fff'];
+          case 3:
+            return ['#00591b', '#00591b', '#fff'];
+          case 4:
+            return ['#6099e6', '#6099e6', '#fff'];
+          case 5:
+            return ['#4f3581', '#4f3581', '#fff'];
           default:
-            graphColorArr = ['#fff', '#000'];
-            break;
+            return ['#fff', '#000', '#fff'];
         }
-        return graphColorArr;
       };
       market.flags = market.flags.map(flag => {
         const colorArray = fillFlagColor(flag.design);
@@ -594,14 +595,6 @@ export function getMarketData(platform, type = 'live_graph', playerId = null) {
         };
       });
       dispatch({ type: types.SAVE_MARKET_DATA, market });
-    });
+    }).catch(() => { /* then we just won't update */ });
   };
-}
-
-export function stop() {
-  if (cycleTimeout) {
-    window.clearTimeout(cycleTimeout);
-    cycleTimeout = undefined;
-  }
-  return { type: types.STOP_BIDDING };
 }
