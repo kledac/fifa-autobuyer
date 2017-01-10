@@ -16,9 +16,9 @@ const filter = {
 
 // Disable console.log and console.error in unit tests
 const logger = {
-  log: console.log,
-  warn: console.warn,
-  error: console.error
+  log: console.log, // eslint-disable-line no-console
+  warn: console.warn, // eslint-disable-line no-console
+  error: console.error // eslint-disable-line no-console
 };
 if (process.env.NODE_ENV === 'test') {
   logger.log = () => {};

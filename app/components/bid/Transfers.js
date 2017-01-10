@@ -13,8 +13,9 @@ export class Transfers extends Component {
     this.counter = undefined;
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.counter = window.setInterval(() => {
+      /* istanbul ignore next */
       $('.expires').each(function countdown() {
         const expires = parseInt($(this).text(), 10);
         if (expires > 0) {
@@ -23,9 +24,9 @@ export class Transfers extends Component {
       });
     }, 1000);
     if (!this.props.bidding) {
-      await this.props.getWatchlist(this.props.email);
-      await this.props.getTradepile(this.props.email);
-      await this.props.getUnassigned(this.props.email);
+      this.props.getWatchlist(this.props.email);
+      this.props.getTradepile(this.props.email);
+      this.props.getUnassigned(this.props.email);
     }
   }
 

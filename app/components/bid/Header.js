@@ -41,6 +41,7 @@ class Header extends Component {
           </div>
           <div className="details-subheader-tabs">
             <span className={overviewClasses}><Link to="/players/overview">Current</Link></span>
+            { /* TODO: Add a tab to display all trade history */ }
           </div>
         </div>
       </div>

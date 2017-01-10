@@ -166,7 +166,11 @@ export const totwPlayer = {
   rating: 89,
   price: {
     lowest: 239000,
-    total: 1
+    buy: 239000,
+    sell: 239000,
+    bin: 239000,
+    total: 1,
+    updated: 0
   },
   history: {
     123456789: {
@@ -355,7 +359,10 @@ export const bidPlayer = {
   price: {
     lowest: 1411000,
     total: 1,
-    buy: 5
+    buy: 1411000,
+    sell: 1411000,
+    bin: 1411000,
+    updated: 0
   },
   history: {
     123456789: {
@@ -542,7 +549,11 @@ export default {
   rating: 94,
   price: {
     lowest: 1411000,
-    total: 1
+    buy: 1411000,
+    sell: 1411000,
+    bin: 1411000,
+    total: 1,
+    updated: 0
   },
   history: {
     123456789: {

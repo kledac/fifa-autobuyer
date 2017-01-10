@@ -728,7 +728,7 @@ describe('actions', () => {
         expect(findPriceStub.calledOnce).to.eql(false);
       });
 
-      it('should  updatePrice if autoUpdate is true when updatePrice() is called', async () => {
+      it('should updatePrice if autoUpdate is true when updatePrice() is called', async () => {
         const initialState = {
           account: {
             email: 'test@test.com',
@@ -745,8 +745,9 @@ describe('actions', () => {
         const store = mockStore(initialState);
         const settings = { minCredits: 1000, maxCard: 5, autoUpdate: true };
 
-        await store.dispatch(actions.updatePrice(player, settings));
-        expect(findPriceStub.calledOnce).to.eql(true);
+        const noPricePlayer = _.merge({}, player, { price: { buy: 0 } });
+        await store.dispatch(actions.updatePrice(noPricePlayer, settings));
+        expect(findPriceStub.called).to.eql(true);
       });
 
       it('should not updatePrice if autoUpdate is true when and price was updated within the hour when updatePrice() is called', async () => {

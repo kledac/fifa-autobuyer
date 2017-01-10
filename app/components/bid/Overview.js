@@ -2,6 +2,7 @@ import React, { PropTypes, Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import ss from 'simple-statistics';
+import numeral from 'numeral';
 import { shell } from 'electron';
 import Header from './Header';
 import ConnectedTransfers from './Transfers';
@@ -106,7 +107,7 @@ export class Overview extends Component {
             text: 'Index Value'
           },
           opposite: false,
-          min: marketData.reduce((a, b) => Math.min(a, b[1]), 1000) - 20,
+          min: marketData.reduce((a, b) => Math.min(a, b[1]), 1000) - 15,
           plotLines: [{
             value: 0,
             width: 1,
@@ -134,6 +135,12 @@ export class Overview extends Component {
       };
     }
 
+    const lifetimeTrades = Object.values(this.props.player.list)
+      .reduce((p, c) => p.concat(Object.values(c.history)), [])
+      .filter(trade => trade.bought > 0 && trade.sold > 0);
+    const lifetimeProfit = lifetimeTrades
+      .reduce((p, c) => p + (c.sold - c.bought), 0);
+
     return (
       <div className="details">
         <Header
@@ -147,6 +154,16 @@ export class Overview extends Component {
             <ConnectedTransfers />
             <div className="right">
               <div className="wrapper">
+                <div className="widget">
+                  <div className="top-bar">
+                    <div className="text">Lifetime Profit</div>
+                  </div>
+                  <div style={{ padding: '1em' }}>
+                    <div className="lifetimeStats" style={{ fontSize: '2em', textAlign: 'center' }}>
+                      {numeral(lifetimeProfit).format('0,0')} credits - {numeral(lifetimeTrades.length).format('0,0')} trades
+                    </div>
+                  </div>
+                </div>
                 <div className="widget">
                   <div className="top-bar">
                     <div className="text">Market Trends</div>
