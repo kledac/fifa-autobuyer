@@ -17,5 +17,5 @@ export const UPDATE_WATCH = 'bid/update/watched';
 export const SET_LISTED = 'bid/set/listed';
 export const UPDATE_LISTED = 'bid/update/listed';
 export const SET_TRADES = 'bid/set/trades';
-export const UPDATE_TRADES = 'bid/set/trades';
+export const UPDATE_TRADES = 'bid/update/trades';
 export const SET_BIN_STATUS = 'bid/set/binStatus';

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import * as types from '../actions/bidTypes';
 
-const initialState = {
+export const initialState = {
   bidding: false,
   cycles: 0,
   tradepile: [],
@@ -45,21 +45,24 @@ export function bid(state = initialState, action) {
       _.set(nextState, 'market', action.market);
       return nextState;
     case types.SET_WATCH:
-      nextState = _.merge({}, state, { watched: action.watched });
+      nextState = _.merge({}, state);
+      _.set(nextState, 'watched', action.watched);
       return nextState;
     case types.UPDATE_WATCH:
       nextState = _.merge({}, state);
       _.set(nextState, `watched.${action.id}`, action.count);
       return nextState;
     case types.SET_LISTED:
-      nextState = _.merge({}, state, { listed: action.listed });
+      nextState = _.merge({}, state);
+      _.set(nextState, 'listed', action.listed);
       return nextState;
     case types.UPDATE_LISTED:
       nextState = _.merge({}, state);
       _.set(nextState, `listed.${action.id}`, action.count);
       return nextState;
     case types.SET_TRADES:
-      nextState = _.merge({}, state, { trades: action.trades });
+      nextState = _.merge({}, state);
+      _.set(nextState, 'trades', action.trades);
       return nextState;
     case types.UPDATE_TRADES:
       nextState = _.merge({}, state);
