@@ -296,7 +296,7 @@ export function updateItems(player, settings) {
                 // Delete from watchlist, we lost
                 try {
                   await api.removeFromWatchlist(item.tradeId);
-                  const trades = state.bid;
+                  const trades = state.bid.trades;
                   delete trades[item.tradeId];
                   dispatch(setWatchlist(Object.values(trades)));
                 } catch (e) {
@@ -314,7 +314,7 @@ export function updateItems(player, settings) {
                 // Remove from list if new bid is too high, or we already have too many listed
                 try {
                   await api.removeFromWatchlist(item.tradeId);
-                  const trades = state.bid;
+                  const trades = state.bid.trades;
                   delete trades[item.tradeId];
                   dispatch(setWatchlist(Object.values(trades)));
                 } catch (e) {
