@@ -70,11 +70,17 @@ export class Transfers extends Component {
                 {_.map(
                   watchlist,
                   item => {
-                    const player = _.get(
+                    let player = _.get(
                       this.props.player,
                       `list.${Fut.getBaseId(item.itemData.resourceId)}`,
                       {}
                     );
+                    if (!player) {
+                      player = {
+                        name: 'Unknown',
+                        price: { buy: 0 }
+                      }
+                    }
                     const rowClass = classNames({
                       success: item.bidState === 'highest',
                       warning: item.bidState !== 'highest' && item.currentBid < player.price.buy && item.expires > -1,
@@ -123,11 +129,14 @@ export class Transfers extends Component {
                 {_.map(
                   tradepile,
                   item => {
-                    const player = _.get(
+                    let player = _.get(
                       this.props.player,
                       `list.${Fut.getBaseId(item.itemData.resourceId)}`,
                       {}
                     );
+                    if (!player) {
+                      player = { name: 'Unknown' };
+                    }
                     const rowClass = classNames({
                       success: item.itemData.itemState === 'invalid' && item.expires === -1,
                       danger: item.itemData.itemState !== 'invalid' && item.expires === -1,
@@ -181,11 +190,17 @@ export class Transfers extends Component {
                 {_.map(
                   unassigned,
                   item => {
-                    const player = _.get(
+                    let player = _.get(
                       this.props.player,
                       `list.${Fut.getBaseId(item.resourceId)}`,
                       {}
                     );
+                    if (!player) {
+                      player = {
+                        name: 'Unknown',
+                        price: { buy: 'N/A', sell: 'N/A' }
+                      }
+                    }
                     return (
                       <tr key={`unassigned-${item.id}`}>
                         <td>{player.name}</td>
