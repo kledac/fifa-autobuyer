@@ -16,6 +16,9 @@ const mockStore = configureMockStore(middlewares);
 function setup(state, history = false) {
   const actions = {
     getMarketData: sinon.stub().returns(),
+    getWatchlist: sinon.stub().return(),
+    getTradepile: sinon.stub().return(),
+    getUnassigned: sinon.stub().return(),
     start: sinon.spy(),
     stop: sinon.spy()
   };
