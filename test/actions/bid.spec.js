@@ -1400,18 +1400,16 @@ describe('actions', () => {
             credits: 5000
           },
           bid: {
-            trades: {
-              1: {}
-            }
+            trades: {}
           }
         };
-        const settings = { snipeOnly: false };
+        const settings = { snipeOnly: true };
         const store = mockStore(initialState);
         store.dispatch(actions.continueTracking(settings));
         expect(apiStub.calledOnce).to.eql(true);
       });
 
-      it('should throw error from getStatus() when continueTracking() is called', async () => {
+      it('should continue to track item when continueTracking() is called', async () => {
         const itemData = {
           id: 1,
           resourceId: 444,
@@ -1442,7 +1440,7 @@ describe('actions', () => {
           }
         };
 
-        const settings = { snipeOnly: true };
+        const settings = { snipeOnly: false };
         const store = mockStore(initialState);
         store.dispatch(actions.continueTracking(settings));
         expect(apiStub.calledOnce).to.eql(true);
