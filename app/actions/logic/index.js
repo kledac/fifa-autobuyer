@@ -71,7 +71,30 @@ export function bidCycle() {
       }
 
       // Update items always when bidding
-      await dispatch(bidActions.updateItems(player, settings));
+      // await dispatch(bidActions.updateItems(player, settings));
+
+      // if (state.bid.bidding) {
+      //   // Update watched items
+      //   await dispatch(bidActions.getWatchlist(state.account.email));
+
+      //   state = getState();
+      //   // update our watched trades for this part
+      //   // trades = _.keyBy(state.bid.watchlist, 'tradeId');
+      //   dispatch(bidActions.setTrades(_.keyBy(state.bid.watchlist, 'tradeId')));
+      //   // refresh state again
+      //   state = getState();
+
+      //   await bidActions.continueTracking(settings);
+
+      //   // buy now goes directly to unassigned now
+      //   await bidActions.binNowToUnassigned();
+
+      //   // Relist expired trades (and list new ones if needed)
+      //   await bidActions.bidActionsrelistItems(settings);
+
+      //   // Log sold items
+      //   await bidActions.logSold();
+      // }
     }
     // keep going
     await dispatch(bidActions.keepBidding());

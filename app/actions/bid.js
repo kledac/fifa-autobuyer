@@ -447,35 +447,6 @@ export function continueTracking(settings) {
   };
 }
 
-export function updateItems(player, settings) {
-  return async (dispatch, getState) => {
-    let state = getState();
-
-    if (state.bid.bidding) {
-      // Update watched items
-      await dispatch(getWatchlist(state.account.email));
-
-      state = getState();
-      // update our watched trades for this part
-      // trades = _.keyBy(state.bid.watchlist, 'tradeId');
-      dispatch(setTrades(_.keyBy(state.bid.watchlist, 'tradeId')));
-      // refresh state again
-      state = getState();
-
-      await continueTracking(settings);
-
-      // buy now goes directly to unassigned now
-      await binNowToUnassigned();
-
-      // Relist expired trades (and list new ones if needed)
-      await relistItems(settings);
-
-      // Log sold items
-      await logSold();
-    }
-  };
-}
-
 export function keepBidding() {
   return async (dispatch, getState) => {
     const state = getState();

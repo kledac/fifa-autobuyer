@@ -1419,7 +1419,7 @@ describe('actions', () => {
           sold: 400
         };
 
-        // const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
+        const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
         const getStatusStub = sandbox.stub().returns({ credits: 4000, auctionInfo: itemData });
 
         const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
@@ -1437,6 +1437,16 @@ describe('actions', () => {
                 itemData
               }
             }
+          },
+          player: {
+            list: {
+              23: {
+                price: {
+                  sell: 600,
+                  bin: 1000
+                }
+              }
+            }
           }
         };
 
@@ -1445,9 +1455,9 @@ describe('actions', () => {
         store.dispatch(actions.continueTracking(settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(getStatusStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.eql([
-          accountActions.setCredits(4000)
-        ]);
+        expect(getBaseIdStub.calledOnce).to.eql(true);
+        console.log(store.getActions());
+        expect(store.getActions()).to.eql([]);
       });
 
       it('should handle clearing existing timer when stop() is called', async () => {
