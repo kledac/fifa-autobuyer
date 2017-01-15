@@ -64,37 +64,36 @@ export function bidCycle() {
         && _.get(state.bid.listed, player.id, 0) < settings.maxCard
       ) {
         // Snipe BINs
+        state = getState();
         await dispatch(bidActions.snipe(player, settings));
 
         // Place bids
+        state = getState();
         await dispatch(bidActions.placeBid(player, settings));
       }
 
       // Update items always when bidding
       // await dispatch(bidActions.updateItems(player, settings));
 
-      // if (state.bid.bidding) {
-      //   // Update watched items
-      //   await dispatch(bidActions.getWatchlist(state.account.email));
+      state = getState();
+      if (state.bid.bidding) {
+        // Update watched items and trades
+        await dispatch(bidActions.getWatchlist(state.account.email));
+        state = getState(); // need to refresh state to get latest watchlist
+        dispatch(bidActions.setTrades(_.keyBy(state.bid.watchlist, 'tradeId')));
 
-      //   state = getState();
-      //   // update our watched trades for this part
-      //   // trades = _.keyBy(state.bid.watchlist, 'tradeId');
-      //   dispatch(bidActions.setTrades(_.keyBy(state.bid.watchlist, 'tradeId')));
-      //   // refresh state again
-      //   state = getState();
+        // Perform watchlist tracking
+        await dispatch(bidActions.continueTracking(settings));
 
-      //   await bidActions.continueTracking(settings);
+        // buy now goes directly to unassigned now
+        await dispatch(bidActions.binNowToUnassigned());
 
-      //   // buy now goes directly to unassigned now
-      //   await bidActions.binNowToUnassigned();
+        // Relist expired trades (and list new ones if needed)
+        await dispatch(bidActions.relistItems(settings));
 
-      //   // Relist expired trades (and list new ones if needed)
-      //   await bidActions.bidActionsrelistItems(settings);
-
-      //   // Log sold items
-      //   await bidActions.logSold();
-      // }
+        // Log sold items
+        await dispatch(bidActions.logSold());
+      }
     }
     // keep going
     await dispatch(bidActions.keepBidding());

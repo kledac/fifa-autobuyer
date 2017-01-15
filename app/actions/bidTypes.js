@@ -1,6 +1,8 @@
 export const START_BIDDING = 'bid/start';
 export const STOP_BIDDING = 'bid/stop';
 export const SET_CYCLES = 'bid/set/cycle/count';
+export const ADD_MESSAGE = 'bid/add/message';
+export const CLEAR_MESSAGES = 'bid/clear/messages';
 export const SET_TRADEPILE = 'bid/set/tradepile';
 export const SET_WATCHLIST = 'bid/set/watchlist';
 export const SET_UNASSIGNED = 'bid/set/unassigned';

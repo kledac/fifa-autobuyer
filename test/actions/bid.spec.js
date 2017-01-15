@@ -127,7 +127,8 @@ describe('actions', () => {
         expect(logicStub.calledOnce).to.eql(true);
         expect(store.getActions()).to.be.eql([
           { type: types.START_BIDDING },
-          { type: types.SET_CYCLES, count: 0 }
+          { type: types.SET_CYCLES, count: 0 },
+          { type: types.CLEAR_MESSAGES }
         ]);
       });
 
@@ -151,7 +152,8 @@ describe('actions', () => {
         await store.dispatch(actions.snipe(player, settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(searchStub.calledOnce).to.eql(true);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should handle Error thrown in api.search() when snipe() is called', async () => {
@@ -174,7 +176,8 @@ describe('actions', () => {
         await store.dispatch(actions.snipe(player, settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(searchStub.calledOnce).to.eql(true);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should not buy card when snipe() is called if not enough credits', async () => {
@@ -206,7 +209,8 @@ describe('actions', () => {
         expect(apiStub.calledOnce).to.eql(true);
         expect(searchStub.calledOnce).to.eql(true);
         expect(bidStub.called).to.eql(false);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should not buy card when snipe() is called if not enough contracts', async () => {
@@ -238,7 +242,8 @@ describe('actions', () => {
         expect(apiStub.calledOnce).to.eql(true);
         expect(searchStub.calledOnce).to.eql(true);
         expect(bidStub.called).to.eql(false);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should buy card when snipe() is called if conditions met', async () => {
@@ -287,7 +292,8 @@ describe('actions', () => {
           { type: 'bid/set/binStatus', won: true },
           { type: 'bid/update/listed', id: '20801', count: 1 } ]
          */
-        expect(store.getActions()).to.eql([
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.eql([
           accountActions.setCredits(4999),
           actions.setBINStatus(true),
           actions.updateListed(player.id, 1)
@@ -340,7 +346,8 @@ describe('actions', () => {
           { type: 'bid/set/binStatus', won: true },
           { type: 'bid/update/listed', id: '20801', count: 1 } ]
          */
-        expect(store.getActions()).to.eql([
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.eql([
           accountActions.setCredits(4999),
           actions.setBINStatus(true),
           actions.updateListed(player.id, initialState.bid.listed[player.id] + 1)
@@ -376,7 +383,8 @@ describe('actions', () => {
         expect(apiStub.calledOnce).to.eql(true);
         expect(searchStub.calledOnce).to.eql(true);
         expect(bidStub.calledOnce).to.eql(true);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should not place bid if snipeOnly setting is set when placeBid() is called', async () => {
@@ -419,7 +427,8 @@ describe('actions', () => {
         expect(apiStub.called).to.eql(false);
         expect(searchStub.called).to.eql(false);
         expect(bidStub.called).to.eql(false);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should handle Error thrown in api.search() when placeBid() is called', async () => {
@@ -442,7 +451,8 @@ describe('actions', () => {
         await store.dispatch(actions.placeBid(player, settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(searchStub.calledOnce).to.eql(true);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should place bid when placeBid() is called with existing bid', async () => {
@@ -493,7 +503,8 @@ describe('actions', () => {
         await store.dispatch(actions.placeBid(bidPlayer, settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(highestPriceStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.be.eql(
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.be.eql(
           [
             accountActions.setCredits(4999),
             actions.updateListed(12345, {
@@ -560,7 +571,8 @@ describe('actions', () => {
         await store.dispatch(actions.placeBid(bidPlayer, settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(highestPriceStub.called).to.eql(false);
-        expect(store.getActions()).to.be.eql(
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.be.eql(
           [
             accountActions.setCredits(4999),
             actions.updateListed(12345, {
@@ -617,7 +629,8 @@ describe('actions', () => {
         expect(searchStub.calledOnce).to.eql(true);
         expect(highestPriceStub.calledOnce).to.eql(true);
         expect(bidStub.calledOnce).to.eql(true);
-        expect(store.getActions().length).to.eql(0);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should not keep bidding when state.bid.bidding is false when keepBidding() is called', async () => {
@@ -848,81 +861,6 @@ describe('actions', () => {
         );
       });
 
-      // it('should do something here when updateItems() is called', async () => {
-      //   const searchStub = sandbox.stub().returns({ auctionInfo: [{
-      //     tradeId: 12345,
-      //     buyNowPrice: 1,
-      //     expires: 250,
-      //     currentBid: 1,
-      //     itemData: {
-      //       contract: 1
-      //     }
-      //   }] });
-
-      //   const bidStub = sandbox.stub().returns({
-      //     credits: 4999,
-      //     auctionInfo: [{
-      //       tradeId: 12345,
-      //       tradeState: 'closed',
-      //       bidState: 'highest',
-      //       buyNowPrice: 1,
-      //       itemData: {
-      //         contract: 1
-      //       }
-      //     }]
-      //   });
-      // const auctionInfo = [
-      //    { itemData: {
-      //       tradeId: 12345,
-      //       resourceId: 111,
-      //       tradeState: 'expired'
-      //     }
-      //   }
-      // ];
-      //   const getWatchlistStub = sandbox.stub().returns({ credits: 1, auctionInfo });
-      //   const getStatusStub = sandbox.stub().returns({ credits: 4999, auctionInfo });
-      //   const relistStub = sandbox.stub().returns({ code: 200 });
-      //   const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
-      //     search: searchStub,
-      //     placeBid: bidStub,
-      //     getWatchlist: getWatchlistStub,
-      //     getStatus: getStatusStub,
-      //     relist: relistStub
-      //   });
-
-      //   const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
-      //   const initialState = {
-      //     account: {
-      //       email: 'test@test.com',
-      //       credits: 5000
-      //     },
-      //     bid: {
-      //       bidding: true,
-      //       listed: {},
-      //       watchlist: auctionInfo,
-      //       trades: _.keyBy(auctionInfo, 'tradeId'),
-      //       tradepile: [
-      //         {
-      //           tradeState: 'expired',
-      //           itemData: {
-      //             itemState: 'notFree'
-      //           }
-      //         }
-      //       ]
-      //     },
-      //     player: bidPlayer
-      //   };
-      //   const settings = { minCredits: 1000, maxCard: 5, relistAll: true };
-      //   const store = mockStore(initialState);
-      //   await store.dispatch(actions.updateItems(bidPlayer, settings));
-      //   expect(apiStub.called).to.eql(true);
-      //   expect(getWatchlistStub.calledOnce).to.eql(true);
-      //   expect(getBaseIdStub.calledOnce).to.eql(true);
-      //   // expect(store.getActions()).to.be.eql(
-      //   //   [accountActions.setCredits(1), { type: types.SET_UNASSIGNED, unassigned: itemData }]
-      //   // );
-      // });
-
       it('should do nothing if state.bid.binWon is false when binNowToUnassigned() is called', async () => {
         const initialState = {
           account: {
@@ -1049,7 +987,8 @@ describe('actions', () => {
         expect(apiStub.called).to.eql(true);
         expect(getBaseIdStub.calledOnce).to.eql(true);
         expect(sendToTradepileStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.be.eql(
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.be.eql(
           [
             accountActions.setCredits(1),
             { type: types.SET_UNASSIGNED, unassigned: itemData },
@@ -1099,7 +1038,8 @@ describe('actions', () => {
         expect(getBaseIdStub.calledOnce).to.eql(true);
         expect(sendToTradepileStub.calledOnce).to.eql(true);
         expect(listItemStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.be.eql(
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.be.eql(
           [
             accountActions.setCredits(1),
             { type: types.SET_UNASSIGNED, unassigned: itemData },
@@ -1152,7 +1092,8 @@ describe('actions', () => {
         await store.dispatch(actions.relistItems(settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(relistStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.eql([]);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should error happen manually relist items but error throws again when relistItems() is called', async () => {
@@ -1194,7 +1135,8 @@ describe('actions', () => {
         expect(relistStub.calledOnce).to.eql(true);
         expect(getBaseIdStub.calledOnce).to.eql(true);
         expect(listItemStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.eql([]);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should error happen manually relist items when relistItems() is called', async () => {
@@ -1236,7 +1178,8 @@ describe('actions', () => {
         expect(relistStub.calledOnce).to.eql(true);
         expect(getBaseIdStub.calledOnce).to.eql(true);
         expect(listItemStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.eql([]);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
       });
 
       it('should do nothing when nothing has been sold when logSold() is called', async () => {
@@ -1378,7 +1321,8 @@ describe('actions', () => {
         expect(getBaseIdStub.calledOnce).to.eql(true);
         expect(removeFromTradepileStub.calledOnce).to.eql(true);
         expect(getTradepileStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.eql(
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.eql(
           [
             actions.updateHistory(23, {
               id: itemData.id,
@@ -1405,14 +1349,17 @@ describe('actions', () => {
         };
         const settings = { snipeOnly: true };
         const store = mockStore(initialState);
-        store.dispatch(actions.continueTracking(settings));
+        await store.dispatch(actions.continueTracking(settings));
         expect(apiStub.calledOnce).to.eql(true);
+        expect(store.getActions().length).to.eql(0);
       });
 
       it('should continue to track item when continueTracking() is called', async () => {
         const itemData = {
-          id: 1,
-          resourceId: 444,
+          tradeId: 1,
+          itemData: {
+            resourceId: 444,
+          },
           startingBid: 350,
           buyNowPrice: 550,
           currentBid: 400,
@@ -1420,7 +1367,7 @@ describe('actions', () => {
         };
 
         const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
-        const getStatusStub = sandbox.stub().returns({ credits: 4000, auctionInfo: itemData });
+        const getStatusStub = sandbox.stub().returns({ credits: 4000, auctionInfo: [itemData] });
 
         const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
           getStatus: getStatusStub
@@ -1433,14 +1380,14 @@ describe('actions', () => {
           },
           bid: {
             trades: {
-              1: {
-                itemData
-              }
-            }
+              1: itemData
+            },
+            listed: {}
           },
           player: {
             list: {
               23: {
+                history: {},
                 price: {
                   sell: 600,
                   bin: 1000
@@ -1452,11 +1399,12 @@ describe('actions', () => {
 
         const settings = { snipeOnly: false };
         const store = mockStore(initialState);
-        store.dispatch(actions.continueTracking(settings));
+        await store.dispatch(actions.continueTracking(settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(getStatusStub.calledOnce).to.eql(true);
         expect(getBaseIdStub.calledOnce).to.eql(true);
-        expect(store.getActions()).to.eql([
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.eql([
           accountActions.setCredits(4000)
         ]);
       });
@@ -1483,7 +1431,8 @@ describe('actions', () => {
         await store.dispatch(actions.stop());
         clock.tick(60000);
         expect(logicStub.called).to.eql(false);
-        expect(store.getActions()).to.eql([
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions).to.eql([
           { type: types.STOP_BIDDING }
         ]);
       });

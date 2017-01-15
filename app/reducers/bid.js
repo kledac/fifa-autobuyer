@@ -13,7 +13,8 @@ export const initialState = {
   market: {
     data: [],
     flags: []
-  }
+  },
+  logs: []
 };
 
 export function bid(state = initialState, action) {
@@ -24,6 +25,13 @@ export function bid(state = initialState, action) {
       return nextState;
     case types.STOP_BIDDING:
       nextState = _.merge({}, state, { bidding: false });
+      return nextState;
+    case types.ADD_MESSAGE:
+      nextState = _.merge({}, state);
+      nextState.logs.push(action.log);
+      return nextState;
+    case types.CLEAR_MESSAGES:
+      nextState = _.merge({}, state, { logs: [] });
       return nextState;
     case types.SET_CYCLES:
       nextState = _.merge({}, state, { cycles: action.count });

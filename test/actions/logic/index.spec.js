@@ -72,7 +72,10 @@ function setup(sandbox) {
     setBINStatus: sandbox.spy(bidActions, 'setBINStatus'),
     snipe: sandbox.stub(bidActions, 'snipe').returns(() => {}),
     placeBid: sandbox.stub(bidActions, 'placeBid').returns(() => {}),
-    // updateItems: sandbox.stub(bidActions, 'updateItems').returns(() => {}),
+    continueTracking: sandbox.stub(bidActions, 'continueTracking').returns(() => {}),
+    binNowToUnassigned: sandbox.stub(bidActions, 'binNowToUnassigned').returns(() => {}),
+    relistItems: sandbox.stub(bidActions, 'relistItems').returns(() => {}),
+    logSold: sandbox.stub(bidActions, 'logSold').returns(() => {}),
     keepBidding: sandbox.stub(bidActions, 'keepBidding').returns(() => {})
   };
 }
@@ -88,14 +91,13 @@ describe('actions', () => {
         sandbox.restore();
       });
 
-      it('should not call getUnassigned/getWatchlist on repeat cycles', async () => {
+      it('should not call getUnassigned on repeat cycles', async () => {
         const {
           getUnassigned,
-          getWatchlist,
           getTradepile,
           snipe,
           placeBid,
-          // updateItems,
+          continueTracking,
           keepBidding
         } = setup(sandbox);
         const state = _.merge({}, initialState, {
@@ -107,11 +109,10 @@ describe('actions', () => {
         const store = mockStore(state);
         await store.dispatch(cycle());
         expect(getUnassigned.called).to.eql(false);
-        expect(getWatchlist.called).to.eql(false);
         expect(getTradepile.calledOnce).to.eql(true);
         expect(snipe.calledTwice).to.eql(true);
         expect(placeBid.calledTwice).to.eql(true);
-        // expect(updateItems.calledTwice).to.eql(true);
+        expect(continueTracking.calledTwice).to.eql(true);
         expect(keepBidding.calledOnce).to.eql(true);
       });
 
@@ -128,7 +129,7 @@ describe('actions', () => {
           setBINStatus,
           snipe,
           placeBid,
-          // updateItems,
+          continueTracking,
           keepBidding
         } = setup(sandbox);
         const state = _.merge({}, initialState, {
@@ -151,7 +152,7 @@ describe('actions', () => {
         expect(setBINStatus.called).to.eql(false);
         expect(snipe.called).to.eql(false);
         expect(placeBid.called).to.eql(false);
-        // expect(updateItems.called).to.eql(false);
+        expect(continueTracking.called).to.eql(false);
         expect(keepBidding.calledOnce).to.eql(true);
       });
 
@@ -162,7 +163,7 @@ describe('actions', () => {
           getTradepile,
           snipe,
           placeBid,
-          // updateItems,
+          continueTracking,
           keepBidding
         } = setup(sandbox);
         const store = mockStore(initialState);
@@ -172,7 +173,7 @@ describe('actions', () => {
         expect(getTradepile.calledOnce).to.eql(true);
         expect(snipe.called).to.eql(false);
         expect(placeBid.called).to.eql(false);
-        // expect(updateItems.calledTwice).to.eql(true);
+        expect(continueTracking.called).to.eql(false);
         expect(keepBidding.calledOnce).to.eql(true);
       });
 
@@ -183,7 +184,7 @@ describe('actions', () => {
           getTradepile,
           snipe,
           placeBid,
-          // updateItems,
+          continueTracking,
           keepBidding
         } = setup(sandbox);
         const state = _.merge({}, initialState, {
@@ -199,11 +200,11 @@ describe('actions', () => {
         const store = mockStore(state);
         await store.dispatch(cycle());
         expect(getUnassigned.calledOnce).to.eql(true);
-        expect(getWatchlist.calledOnce).to.eql(true);
+        expect(getWatchlist.callCount).to.eql(3); // Once at start, twice at update
         expect(getTradepile.calledOnce).to.eql(true);
         expect(snipe.called).to.eql(false);
         expect(placeBid.called).to.eql(false);
-        // expect(updateItems.calledTwice).to.eql(true);
+        expect(continueTracking.calledTwice).to.eql(true);
         expect(keepBidding.calledOnce).to.eql(true);
       });
 
@@ -214,7 +215,7 @@ describe('actions', () => {
           getTradepile,
           snipe,
           placeBid,
-          // updateItems,
+          continueTracking,
           keepBidding
         } = setup(sandbox);
         const state = _.merge({}, initialState, {
@@ -224,11 +225,11 @@ describe('actions', () => {
         const store = mockStore(state);
         await store.dispatch(cycle());
         expect(getUnassigned.calledOnce).to.eql(true);
-        expect(getWatchlist.calledOnce).to.eql(true);
+        expect(getWatchlist.callCount).to.eql(3); // Once at start, twice at update
         expect(getTradepile.calledOnce).to.eql(true);
         expect(snipe.called).to.eql(false);
         expect(placeBid.called).to.eql(false);
-        // expect(updateItems.calledTwice).to.eql(true);
+        expect(continueTracking.calledTwice).to.eql(true);
         expect(keepBidding.calledOnce).to.eql(true);
       });
 
@@ -239,7 +240,7 @@ describe('actions', () => {
           getTradepile,
           snipe,
           placeBid,
-          // updateItems,
+          continueTracking,
           keepBidding
         } = setup(sandbox);
         const state = _.merge({}, initialState, {
@@ -262,12 +263,12 @@ describe('actions', () => {
         const store = mockStore(state);
         await store.dispatch(cycle());
         expect(getUnassigned.calledOnce).to.eql(true);
-        expect(getWatchlist.calledOnce).to.eql(true);
+        expect(getWatchlist.callCount).to.eql(3); // Once at start, twice at update
         expect(getTradepile.calledOnce).to.eql(true);
         // These are called once for TOTW player (the other card in the list)
         expect(snipe.calledOnce).to.eql(true);
         expect(placeBid.calledOnce).to.eql(true);
-        // expect(updateItems.calledTwice).to.eql(true);
+        expect(continueTracking.calledTwice).to.eql(true);
         expect(keepBidding.calledOnce).to.eql(true);
       });
     });

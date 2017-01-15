@@ -151,7 +151,9 @@ export class Overview extends Component {
         />
         <div className="details-panel home">
           <div className="content">
-            <ConnectedTransfers />
+            <div className="left">
+              <ConnectedTransfers />
+            </div>
             <div className="right">
               <div className="wrapper">
                 <div className="widget">

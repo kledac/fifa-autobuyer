@@ -6,7 +6,11 @@ class Header extends Component {
   render() {
     const overviewClasses = classNames({
       'details-tab': true,
-      active: !this.props.router.isActive('/players/history'),
+      active: !this.props.router.isActive('/players/logs'),
+    });
+    const logsClasses = classNames({
+      'details-tab': true,
+      active: this.props.router.isActive('/players/logs'),
     });
     return (
       <div>
@@ -41,6 +45,7 @@ class Header extends Component {
           </div>
           <div className="details-subheader-tabs">
             <span className={overviewClasses}><Link to="/players/overview">Current</Link></span>
+            <span className={logsClasses}><Link to="/players/logs">Logs</Link></span>
             { /* TODO: Add a tab to display all trade history */ }
           </div>
         </div>
