@@ -13,8 +13,6 @@ export class Logs extends Component {
 
   componentDidUpdate() {
     this.handleResize();
-    const node = $('.logs').get()[0];
-    node.scrollTop = node.scrollHeight;
   }
 
   componentWillUnmount() {
@@ -23,6 +21,8 @@ export class Logs extends Component {
 
   handleResize() {
     $('.full .wrapper').height(window.innerHeight - 132);
+    const node = $('.logs').get()[0];
+    node.scrollTop = node.scrollHeight;
   }
 
   render() {
@@ -34,7 +34,7 @@ export class Logs extends Component {
           }
           return <div className={log.level} key={`log-${i}`}>{log.msg}{error}</div>;
         }) :
-        ['No logs yet for this bidding session.'];
+        'No logs yet for this bidding session.';
 
     return (
       <div className="details">
