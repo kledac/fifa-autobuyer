@@ -924,7 +924,6 @@ describe('actions', () => {
       // });
 
       it('should do nothing if state.bid.binWon is false when binNowToUnassigned() is called', async () => {
-
         const initialState = {
           account: {
             email: 'test@test.com',
