@@ -1456,8 +1456,9 @@ describe('actions', () => {
         expect(apiStub.calledOnce).to.eql(true);
         expect(getStatusStub.calledOnce).to.eql(true);
         expect(getBaseIdStub.calledOnce).to.eql(true);
-        console.log(store.getActions());
-        expect(store.getActions()).to.eql([]);
+        expect(store.getActions()).to.eql([
+          accountActions.setCredits(4000)
+        ]);
       });
 
       it('should handle clearing existing timer when stop() is called', async () => {
