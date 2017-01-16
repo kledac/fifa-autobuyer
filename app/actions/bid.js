@@ -278,7 +278,7 @@ export function binNowToUnassigned() {
 export function relistItems(settings) {
   return async (dispatch, getState) => {
     const state = getState();
-    const api = getApi();
+    const api = getApi(state.account.email);
     const expired = state.bid.tradepile.filter(i => i.tradeState === 'expired');
     if (expired.length > 0) {
       dispatch(addMessage('log', 'Re-listing expired items'));
@@ -318,7 +318,7 @@ export function relistItems(settings) {
 export function logSold() {
   return async (dispatch, getState) => {
     const state = getState();
-    const api = getApi();
+    const api = getApi(state.account.email);
     const sold = state.bid.tradepile.filter(i => i.tradeState === 'closed');
 
     if (sold.length > 0) {
@@ -348,7 +348,7 @@ export function logSold() {
 export function continueTracking(settings) {
   return async (dispatch, getState) => {
     let state = getState();
-    const api = getApi();
+    const api = getApi(state.account.email);
     const tradeIds = Object.keys(state.bid.trades);
     if (!settings.snipeOnly && tradeIds.length) {
       let statuses;
