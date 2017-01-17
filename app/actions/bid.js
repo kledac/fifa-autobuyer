@@ -3,6 +3,7 @@ import moment from 'moment';
 import Fut from 'fut-promise';
 import request from 'request';
 import * as types from './bidTypes';
+import cycle from './logic';
 import { getApi } from '../utils/ApiUtil';
 import { setCredits } from './account';
 import { findPrice } from './player';
@@ -10,431 +11,450 @@ import { findPrice } from './player';
 const filter = {
   type: 'player',
   start: 0,
-  num: 50,
+  num: 16,
 };
 
 let cycleTimeout;
 let marketRequest;
 
-export function addMessage(msg) {
-  return { type: types.ADD_MESSAGE, timestamp: new Date(), msg };
-}
-
 export function start() {
   return async dispatch => {
     dispatch({ type: types.START_BIDDING });
     dispatch(setCycleCount(0));
+    dispatch(clearMessages());
     await dispatch(cycle());
   };
+}
+
+export function addMessage(level = 'log', msg, error = null) {
+  return { type: types.ADD_MESSAGE, log: { level, msg: `[${moment().format('HH:mm:ss')}] ${msg}`, error } };
+}
+
+export function clearMessages() {
+  return { type: types.CLEAR_MESSAGES };
 }
 
 export function setCycleCount(count = 0) {
   return { type: types.SET_CYCLES, count };
 }
 
-export function cycle() {
+export function setWatched(watched) {
+  return { type: types.SET_WATCH, watched };
+}
+
+export function updateWatched(id, count) {
+  return { type: types.UPDATE_WATCH, id, count };
+}
+
+export function setListed(listed) {
+  return { type: types.SET_LISTED, listed };
+}
+
+export function updateListed(id, count) {
+  return { type: types.UPDATE_LISTED, id, count };
+}
+
+export function setTrades(trades) {
+  return { type: types.SET_TRADES, trades };
+}
+
+export function updateTrades(id, tradeResult) {
+  return { type: types.UPDATE_TRADES, id, tradeResult };
+}
+
+export function setBINStatus(won) {
+  return { type: types.SET_BIN_STATUS, won };
+}
+
+export function snipe(player, settings) {
   return async (dispatch, getState) => {
     let state = getState();
-
-    // Get unassigned and watchlist here only on first cycle
-    if (state.bid.cycles === 0) {
-      await dispatch(getUnassigned(state.account.email));
-      await dispatch(getWatchlist(state.account.email));
-      state = getState();
+    const api = getApi(state.account.email);
+    dispatch(addMessage('log', `Preparing to snipe ${player.name}...`));
+    // Snipe
+    const binFilter = _.merge({}, filter, {
+      definitionId: player.id,
+      maxb: player.price.buy,
+    });
+    let binResponse;
+    try {
+      binResponse = await api.search(binFilter);
+    } catch (e) {
+      dispatch(addMessage('error', `Error searching for BIN on ${player.name}`, e));
+      binResponse = { auctionInfo: [] };
     }
-
-    // Get tradepile at beginning of every cycle
-    await dispatch(getTradepile(state.account.email));
-
-    // Increment cycle count
-    dispatch(setCycleCount(state.bid.cycles + 1));
-
-    // Get the player list
-    const playerList = state.player.list;
-
-    // Keep a manual record of our watched trades
-    let trades = _.keyBy(state.bid.watchlist, 'tradeId');
-
-    // Loop players
-    for (const player of Object.values(playerList)) {
-      // refresh state every player
+    dispatch(addMessage('log', `${binResponse.auctionInfo.length} BIN found for ${player.name}...`));
+    for (const trade of binResponse.auctionInfo) {
+      // refresh state every trade
       state = getState();
-
-      // Setup API
-      const settings = _.merge({}, state.settings, player.settings);
-      const api = getApi(state.account.email, settings.rpm);
-
-      // How many of this player is already listed
-      const listed = _.countBy(
-        state.bid.tradepile,
-        trade => Fut.getBaseId(trade.itemData.resourceId)
-      );
-      const watched = _.countBy(
-        state.bid.watchlist,
-        trade => Fut.getBaseId(trade.itemData.resourceId)
-      );
-
-      // Update prices every hour if auto update price is enabled
-      const price = player.price || {};
-      if (settings.autoUpdate) {
-        const lastUpdated = moment(price.updated || 0);
-        if (!price.buy || moment().isAfter(lastUpdated.add(1, 'h'))) {
-          console.log('Updating price...');
-          await dispatch(findPrice(player.id));
+      if (
+        // We are still bidding
+        state.bid.bidding
+        // We have enough credits
+        && state.account.credits > settings.minCredits
+        // We are below our cap for this player
+        && _.get(state, `bid.listed.${player.id}`, 0) < settings.maxCard
+        // The card has at least one contract
+        && trade.itemData.contract > 0
+      ) {
+        // Buy it!
+        let tradeResult = {};
+        try {
+          const snipeResponse = await api.placeBid(trade.tradeId, trade.buyNowPrice);
+          dispatch(setCredits(snipeResponse.credits));
+          tradeResult = _.get(snipeResponse, 'auctionInfo[0]', {});
+        } catch (e) {
+          dispatch(addMessage('error', `Error placing BIN bid $${trade.buyNowPrice} on ${player.name}`, e));
+        }
+        // tradeResult = {
+        //   bidState: 'buyNow',
+        //   tradeState: 'closed',
+        //   tradeId: trade.tradeId,
+        //   currentBid: trade.buyNowPrice
+        // };
+        // Was this a success?
+        if (tradeResult.tradeState === 'closed' && tradeResult.bidState === 'buyNow') {
+          dispatch(addMessage('log', `Bought for BIN (${trade.buyNowPrice}) on ${player.name}`));
+          dispatch(setBINStatus(true));
+          // Increment number of trades won
+          if (state.bid.listed[player.id] === undefined) {
+            dispatch(updateListed(player.id, 1));
+          } else {
+            dispatch(updateListed(player.id, state.bid.listed[player.id] + 1));
+          }
         } else {
-          console.log('Price already up to date...');
+          // TODO: do something about this
+          dispatch(addMessage('warn', `Could not snipe ${player.name}`));
         }
       }
+    }
+  };
+}
 
-      // Only bid if we don't already have a full trade pile and don't own too many of this player
-      let binWon = !!state.bid.unassigned.length;
-      if (
-        state.bid.bidding
-        && state.bid.tradepile.length < state.account.pilesize.tradepile
-        && state.account.credits > settings.minCredits
-        && _.get(listed, player.id, 0) < settings.maxCard
-      ) {
-        console.log('Preparing to snipe...');
-        // Snipe
-        const binFilter = _.merge({}, filter, {
-          definitionId: player.id,
-          maxb: player.price.buy,
-        });
-        let binResponse;
-        try {
-          binResponse = await api.search(binFilter);
-        } catch (e) {
-          console.error('Error searching for BIN', e);
-          binResponse = { auctionInfo: [] };
-        }
-        console.log(`${binResponse.auctionInfo.length} BIN found...`);
-        for (const trade of binResponse.auctionInfo) {
-          // refresh state every trade
-          state = getState();
-          if (
-            // We are still bidding
-            state.bid.bidding
-            // We have enough credits
-            && state.account.credits > settings.minCredits
-            // We are below our cap for this player
-            && _.get(listed, player.id, 0) < settings.maxCard
-            // The card has at least one contract
-            && trade.itemData.contract > 0
-          ) {
-            // Buy it!
+export function placeBid(player, settings) {
+  return async (dispatch, getState) => {
+    if (!settings.snipeOnly) {
+      let state = getState();
+      const api = getApi(state.account.email);
+      dispatch(addMessage('log', `Getting ready to search auctions for ${player.name}...`));
+      const bidFilter = _.merge({}, filter, {
+        definitionId: player.id,
+        macr: player.price.buy,
+      });
+      let searchResults = 0;
+      let last5Min = [];
+      try {
+        const bidResponse = await api.search(bidFilter);
+        searchResults = bidResponse.auctionInfo.length;
+        last5Min = _.filter(bidResponse.auctionInfo, trade => trade.expires <= 300);
+      } catch (e) {
+        dispatch(addMessage('error', `Error searching auctions for ${player.name}`, e));
+      }
+      dispatch(addMessage('log', `${searchResults} results (${last5Min.length} in last 5 minutes)`));
+      if (searchResults > 0 && last5Min.length === searchResults) {
+        // TODO: Increment page number and search again
+      }
+      for (const trade of last5Min) {
+        // refresh state every trade
+        state = getState();
+        const listed = _.get(state.bid.listed, player.id, 0);
+        if (
+          // We are still bidding
+          state.bid.bidding
+          // We haven't placed too many bids
+          // (Twice as many as max card - listed, assuming 50% win chance)
+          && _.get(state.bid.watched, player.id, 0) < (settings.maxCard - listed) * 2
+          // TODO: Keep track of how long we are inside this loop to set the
+          //       lower limit, ensuring we do not attempt to bid on expired
+          //       items.
+          && trade.expires > 0
+          // We have enough credits
+          && state.account.credits > settings.minCredits
+          // We are below our cap for this player
+          && listed < settings.maxCard
+          // We are not bidding on something that is already active in our watchlist
+          && state.bid.trades[trade.tradeId] === undefined
+          // The card has at least one contract
+          && trade.itemData.contract > 0
+        ) {
+          // Set our bid
+          let bid;
+          if (trade.currentBid) {
+            bid = Fut.calculateNextHigherPrice(trade.currentBid);
+          } else {
+            bid = trade.startingBid;
+          }
+
+          // Make sure we aren't trying to spend more than we want to
+          if (bid <= player.price.buy) {
+            // Bid!
             let tradeResult = {};
             try {
-              const snipeResponse = await api.placeBid(trade.tradeId, trade.buyNowPrice);
-              dispatch(setCredits(snipeResponse.credits));
-              tradeResult = snipeResponse.auctionInfo[0] || {};
+              const placeBidResponse = await api.placeBid(trade.tradeId, bid);
+              dispatch(setCredits(placeBidResponse.credits));
+              tradeResult = _.get(placeBidResponse, 'auctionInfo[0]', {});
             } catch (e) {
-              console.error('Error placing BIN bid', e);
+              dispatch(addMessage('error', `Error placing bid on ${player.name}`, e));
             }
             // tradeResult = {
-            //   bidState: 'buyNow',
-            //   tradeState: 'closed',
+            //   bidState: 'highest',
             //   tradeId: trade.tradeId,
-            //   currentBid: trade.buyNowPrice
+            //   currentBid: bid
             // };
             // Was this a success?
-            if (tradeResult.tradeState === 'closed' && tradeResult.bidState === 'buyNow') {
-              console.log(`Bought for BIN (${trade.buyNowPrice}) on ${trade.tradeId}`);
-              binWon = true;
-              // Increment number of trades won
-              if (listed[player.id] === undefined) {
-                listed[player.id] = 1;
+            if (tradeResult.bidState === 'highest') {
+              dispatch(addMessage('log', `Bidding ${bid} on ${player.name}`));
+              // Add it to watched trades for listing and update our local watchlist
+              dispatch(updateTrades(tradeResult.tradeId, tradeResult));
+              state = getState();
+              dispatch(setWatchlist(Object.values(state.bid.trades)));
+              // Increment number of trades watched
+              if (state.bid.watched[player.id] === undefined) {
+                // state.bid.watched[player.id] = 1;
+                dispatch(updateWatched(player.id, 1));
               } else {
-                listed[player.id] += 1;
+                // state.bid.watched[player.id] += 1;
+                dispatch(updateWatched(player.id, state.bid.watched[player.id] + 1));
               }
             } else {
               // TODO: do something about this
-              console.warn(`Could not snipe ${trade.tradeId}`);
-            }
-          }
-        }
-
-        // Place bids
-        if (!settings.snipeOnly) {
-          console.log('Getting ready to search auctions...');
-          const bidFilter = _.merge({}, filter, {
-            definitionId: player.id,
-            macr: player.price.buy,
-          });
-          let searchResults = 0;
-          let last5Min = [];
-          try {
-            const bidResponse = await api.search(bidFilter);
-            searchResults = bidResponse.auctionInfo.length;
-            last5Min = _.filter(bidResponse.auctionInfo, trade => trade.expires <= 300);
-          } catch (e) {
-            console.error('Error searching auctions', e);
-          }
-          console.log(`${searchResults} results (${last5Min.length} in last 5 minutes)`);
-          if (searchResults > 0 && last5Min.length === searchResults) {
-            // TODO: Increment page number and search again
-          }
-          for (const trade of last5Min) {
-            // refresh state every trade
-            state = getState();
-            if (
-              // We are still bidding
-              state.bid.bidding
-              // We haven't placed too many bids
-              // (Twice as many as max card, assuming 50% win chance)
-              && _.get(watched, player.id, 0) < (settings.maxCard * 2)
-              // TODO: Keep track of how long we are inside this loop to set the
-              //       lower limit, ensuring we do not attempt to bid on expired
-              //       items.
-              && trade.expires > 0
-              // We have enough credits
-              && state.account.credits > settings.minCredits
-              // We are below our cap for this player
-              && _.get(listed, player.id, 0) < settings.maxCard
-              // We are not bidding on something that is already active in our watchlist
-              && trades[trade.tradeId] === undefined
-              // The card has at least one contract
-              && trade.itemData.contract > 0
-            ) {
-              // Set our bid
-              let bid;
-              if (trade.currentBid) {
-                bid = Fut.calculateNextHigherPrice(trade.currentBid);
-              } else {
-                bid = trade.startingBid;
-              }
-
-              // Make sure we aren't trying to spend more than we want to
-              if (bid <= player.price.buy) {
-                // Bid!
-                let tradeResult = {};
-                try {
-                  const placeBidResponse = await api.placeBid(trade.tradeId, bid);
-                  dispatch(setCredits(placeBidResponse.credits));
-                  tradeResult = placeBidResponse.auctionInfo[0] || {};
-                } catch (e) {
-                  console.error('Error placing bid on auction', e);
-                }
-                // tradeResult = {
-                //   bidState: 'highest',
-                //   tradeId: trade.tradeId,
-                //   currentBid: bid
-                // };
-                // Was this a success?
-                if (tradeResult.bidState === 'highest') {
-                  console.log(`Bidding ${bid} on ${trade.tradeId}`);
-                  // Add it to watched trades for listing and update our local watchlist
-                  trades[tradeResult.tradeId] = tradeResult;
-                  dispatch(setWatchlist(Object.values(trades)));
-                  // Increment number of trades watched
-                  if (watched[player.id] === undefined) {
-                    watched[player.id] = 1;
-                  } else {
-                    watched[player.id] += 1;
-                  }
-                } else {
-                  // TODO: do something about this
-                  console.warn(`Something happened when trying to bid on ${trade.tradeId}`);
-                }
-              }
+              dispatch(addMessage('warn', `Something happened when trying to bid on ${player.name}`));
             }
           }
         }
       }
+    } else {
+      dispatch(addMessage('warn', 'Skipping bidding, adjust settings to enable...'));
+    }
+  };
+}
 
-      // Update items always when bidding
-      if (state.bid.bidding) {
-        // Update watched items
-        await dispatch(getWatchlist(state.account.email));
-        state = getState();
-        // update our watched trades for this part
-        trades = _.keyBy(state.bid.watchlist, 'tradeId');
-        const tradeIds = Object.keys(trades);
-        if (!settings.snipeOnly && tradeIds.length) {
-          let statuses;
+
+export function binNowToUnassigned() {
+  return async (dispatch, getState) => {
+    let state = getState();
+    const api = getApi(state.account.email);
+    if (state.bid.binWon) {
+      await dispatch(getUnassigned(state.account.email));
+      state = getState();
+      dispatch(setBINStatus(!!state.bid.unassigned.length));
+      for (const i of state.bid.unassigned) {
+        const baseId = Fut.getBaseId(i.resourceId);
+        const trackedPlayer = _.get(state.player, `list.${baseId}`, false);
+        if (trackedPlayer) {
+          // Send it to the tradepile
+          let pileResponse;
           try {
-            statuses = await api.getStatus(tradeIds);
-            dispatch(setCredits(statuses.credits));
+            pileResponse = await api.sendToTradepile(i.id);
           } catch (e) {
-            console.error('Error getting trade statuses', e);
-            statuses = { auctionInfo: [] };
+            dispatch(addMessage('error', 'Error sending won BIN to tradepile', e));
+            pileResponse = { itemData: [{ success: false }] };
           }
-          for (const item of statuses.auctionInfo) {
-            const baseId = Fut.getBaseId(trades[item.tradeId].itemData.resourceId);
-            const trackedPlayer = _.get(state.player, `list.${baseId}`, false);
-
-            // Only continue if we are tracking this player, and know about this trade
-            if (trackedPlayer && trades[item.tradeId]) {
-              // Handle Expired Items
-              if (item.expires === -1) {
-                if (item.bidState === 'highest' || (item.tradeState === 'closed' && item.bidState === 'buyNow')) {
-                  // We won! Send to Pile!
-                  let pileResponse;
-                  try {
-                    pileResponse = await api.sendToTradepile(item.itemData.id);
-                  } catch (e) {
-                    console.error('Error sending won auction to tradepile', e);
-                    pileResponse = { itemData: [{ success: false }] };
-                  }
-                  if (pileResponse.itemData[0].success) {
-                    // List on market
-                    try {
-                      await api.listItem(
-                        item.itemData.id,
-                        trackedPlayer.price.sell,
-                        trackedPlayer.price.bin,
-                        3600);
-                      listed[baseId] += 1;
-                      dispatch(updateHistory(baseId, {
-                        id: item.itemData.id,
-                        bought: item.currentBid,
-                        boughtAt: Date.now()
-                      }));
-                    } catch (e) {
-                      console.error('Error listing won auction for sale', e);
-                    }
-                  }
-                } else {
-                  // Delete from watchlist, we lost
-                  try {
-                    await api.removeFromWatchlist(item.tradeId);
-                    delete trades[item.tradeId];
-                    dispatch(setWatchlist(Object.values(trades)));
-                  } catch (e) {
-                    console.error('Error removing lost auction from watchlist', e);
-                  }
-                }
-              } else if (item.bidState !== 'highest') {
-                state = getState();
-                // We were outbid
-                const newBid = Fut.calculateNextHigherPrice(item.currentBid);
-                if (newBid > trackedPlayer.price.buy || listed[baseId] >= settings.maxPlayer) {
-                  // Remove from list if new bid is too high, or we already have too many listed
-                  try {
-                    await api.removeFromWatchlist(item.tradeId);
-                    delete trades[item.tradeId];
-                    dispatch(setWatchlist(Object.values(trades)));
-                  } catch (e) {
-                    console.error('Error removing outbid item from watchlist', e);
-                  }
-                } else if (state.account.credits > settings.minCredits) {
-                  // Only continue if we have enough credits
-                  let tradeResult = {};
-                  try {
-                    const placeBidResponse = await api.placeBid(item.tradeId, newBid);
-                    dispatch(setCredits(placeBidResponse.credits));
-                    tradeResult = placeBidResponse.auctionInfo[0] || {};
-                  } catch (e) {
-                    console.error('Error placing additional bid on item', e);
-                  }
-                  if (tradeResult.bidState !== 'highest') {
-                    // TODO: do something about this
-                    console.warn(`Something happened when trying to bid on ${tradeResult.tradeId}`);
-                  }
-                }
-              }
-            }
-          }
-        }
-
-
-        // buy now goes directly to unassigned now
-        if (binWon) {
-          await dispatch(getUnassigned(state.account.email));
-          state = getState();
-          for (const i of state.bid.unassigned) {
-            const baseId = Fut.getBaseId(i.resourceId);
-            const trackedPlayer = _.get(state.player, `list.${baseId}`, false);
-            if (trackedPlayer) {
-              // Send it to the tradepile
-              let pileResponse;
-              try {
-                pileResponse = await api.sendToTradepile(i.id);
-              } catch (e) {
-                console.error('Error sending won BIN to tradepile', e);
-                pileResponse = { itemData: [{ success: false }] };
-              }
-              if (pileResponse.itemData[0].success) {
-                try {
-                  await api.listItem(
-                    i.id,
-                    trackedPlayer.price.sell,
-                    trackedPlayer.price.bin,
-                    3600);
-                  listed[baseId] += 1;
-                  dispatch(updateHistory(baseId, {
-                    id: i.id,
-                    bought: i.lastSalePrice,
-                    boughtAt: Date.now()
-                  }));
-                } catch (e) {
-                  console.error('Error listing won BIN for sale', e);
-                }
-              }
-            }
-          }
-        }
-
-        // Relist expired trades (and list new ones if needed)
-        const expired = state.bid.tradepile.filter(i => i.tradeState === 'expired' || i.itemData.itemState === 'free');
-        if (expired.length > 0) {
-          console.log('Re-listing expired items');
-          let relistFailed = false;
-          if (settings.relistAll) {
+          if (pileResponse.itemData[0].success) {
             try {
-              const relist = await api.relist();
-              if (relist.code === 500) {
-                relistFailed = true;
+              await api.listItem(
+                i.id,
+                trackedPlayer.price.sell,
+                trackedPlayer.price.bin,
+                3600);
+              // Increment number of trades won
+              if (state.bid.listed[baseId] === undefined) {
+                dispatch(updateListed(baseId, 1));
+              } else {
+                dispatch(updateListed(baseId, state.bid.listed[baseId] + 1));
               }
-            } catch (e) {
-              console.error('Error attempting to relist all auctions', e);
-              relistFailed = true;
-            }
-          }
-          // Relist all failed? Do it manually.
-          if (!settings.relistAll || relistFailed) {
-            console.log(`Manually re-listing ${expired.length} players.`);
-            for (const i of expired) {
-              const baseId = Fut.getBaseId(i.itemData.resourceId);
-              const priceDetails = _.get(state.player, `list.${baseId}.price`, false);
-              try {
-                if (!settings.relistAll && priceDetails) {
-                  await api.listItem(i.itemData.id, priceDetails.sell, priceDetails.bin, 3600);
-                } else {
-                  await api.listItem(i.itemData.id, i.startingBid, i.buyNowPrice, 3600);
-                }
-              } catch (e) {
-                console.error('Error manually re-listing player', e);
-              }
-            }
-          }
-        }
-
-        // Log sold items
-        const sold = state.bid.tradepile.filter(i => i.tradeState === 'closed');
-        if (sold.length > 0) {
-          for (const i of sold) {
-            // Is this a card we are tracking?
-            const baseId = Fut.getBaseId(i.itemData.resourceId);
-            const trackedPlayer = _.get(state.player, `list.${baseId}`, false);
-            if (trackedPlayer) {
               dispatch(updateHistory(baseId, {
-                id: i.itemData.id,
-                sold: i.currentBid,
-                soldAt: Date.now()
+                id: i.id,
+                bought: i.lastSalePrice,
+                boughtAt: Date.now()
               }));
-            }
-            try {
-              await api.removeFromTradepile(i.tradeId);
             } catch (e) {
-              console.error('Error removing sold item from tradepile', e);
+              dispatch(addMessage('error', 'Error listing won BIN for sale', e));
             }
           }
-          // Update tradepile when done
-          await dispatch(getTradepile(state.account.email));
         }
       }
     }
-    // keep going
+  };
+}
+
+export function relistItems(settings) {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const api = getApi(state.account.email);
+    const expired = state.bid.tradepile.filter(i => i.tradeState === 'expired');
+    if (expired.length > 0) {
+      dispatch(addMessage('log', 'Re-listing expired items'));
+      let relistFailed = false;
+      if (settings.relistAll) {
+        try {
+          const relist = await api.relist();
+          if (relist.code === 500) {
+            relistFailed = true;
+          }
+        } catch (e) {
+          dispatch(addMessage('error', 'Error attempting to relist all auctions', e));
+          relistFailed = true;
+        }
+      }
+      // Relist all failed? Do it manually.
+      if (!settings.relistAll || relistFailed) {
+        dispatch(addMessage('log', `Manually re-listing ${expired.length} players.`));
+        for (const i of expired) {
+          const baseId = Fut.getBaseId(i.itemData.resourceId);
+          const priceDetails = _.get(state.player, `list.${baseId}.price`, false);
+          try {
+            if (!settings.relistAll && priceDetails) {
+              await api.listItem(i.itemData.id, priceDetails.sell, priceDetails.bin, 3600);
+            } else {
+              await api.listItem(i.itemData.id, i.startingBid, i.buyNowPrice, 3600);
+            }
+          } catch (e) {
+            dispatch(addMessage('error', 'Error manually re-listing player', e));
+          }
+        }
+      }
+    }
+  };
+}
+
+export function logSold() {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const api = getApi(state.account.email);
+    const sold = state.bid.tradepile.filter(i => i.tradeState === 'closed');
+
+    if (sold.length > 0) {
+      for (const i of sold) {
+        // Is this a card we are tracking?
+        const baseId = Fut.getBaseId(i.itemData.resourceId);
+        const trackedPlayer = _.get(state.player, `list.${baseId}`, false);
+        if (trackedPlayer) {
+          dispatch(updateHistory(baseId, {
+            id: i.itemData.id,
+            sold: i.currentBid,
+            soldAt: Date.now()
+          }));
+        }
+        try {
+          await api.removeFromTradepile(i.tradeId);
+        } catch (e) {
+          dispatch(addMessage('error', 'Error removing sold item from tradepile', e));
+        }
+      }
+      // Update tradepile when done
+      await dispatch(getTradepile(state.account.email));
+    }
+  };
+}
+
+export function continueTracking(settings) {
+  return async (dispatch, getState) => {
+    let state = getState();
+    const api = getApi(state.account.email);
+    const tradeIds = Object.keys(state.bid.trades);
+    if (!settings.snipeOnly && tradeIds.length) {
+      let statuses;
+      try {
+        statuses = await api.getStatus(tradeIds);
+        dispatch(setCredits(statuses.credits));
+      } catch (e) {
+        dispatch(addMessage('error', `Error getting trade statuses: ${JSON.stringify(tradeIds)}`, e));
+        statuses = { auctionInfo: [] };
+      }
+      for (const item of statuses.auctionInfo) {
+        const baseId = Fut.getBaseId(state.bid.trades[item.tradeId].itemData.resourceId);
+        const trackedPlayer = _.get(state.player, `list.${baseId}`, false);
+        // Only continue if we are tracking this player, and know about this trade
+        if (trackedPlayer && state.bid.trades[item.tradeId]) {
+          // Handle Expired Items
+          if (item.expires === -1) {
+            if (item.bidState === 'highest') {
+              // We won! Send to Pile!
+              let pileResponse;
+              try {
+                pileResponse = await api.sendToTradepile(item.itemData.id);
+              } catch (e) {
+                dispatch(addMessage('error', 'Error sending won auction to tradepile', e));
+                pileResponse = { itemData: [{ success: false }] };
+              }
+              if (pileResponse.itemData[0].success) {
+                // List on market
+                try {
+                  await api.listItem(
+                    item.itemData.id,
+                    trackedPlayer.price.sell,
+                    trackedPlayer.price.bin,
+                    3600);
+                  // Increment number of trades won
+                  if (state.bid.listed[baseId] === undefined) {
+                    dispatch(updateListed(baseId, 1));
+                  } else {
+                    dispatch(updateListed(baseId, state.bid.listed[baseId] + 1));
+                  }
+                  dispatch(updateHistory(baseId, {
+                    id: item.itemData.id,
+                    bought: item.currentBid,
+                    boughtAt: Date.now()
+                  }));
+                } catch (e) {
+                  dispatch(addMessage('error', 'Error listing won auction for sale', e));
+                }
+              }
+            } else {
+              // Delete from watchlist, we lost
+              try {
+                await api.removeFromWatchlist(item.tradeId);
+                const trades = state.bid.trades;
+                delete trades[item.tradeId];
+                dispatch(setWatchlist(Object.values(trades)));
+              } catch (e) {
+                dispatch(addMessage('error', 'Error removing lost auction from watchlist', e));
+              }
+            }
+          } else if (item.bidState !== 'highest') {
+            state = getState();
+            // We were outbid
+            const newBid = Fut.calculateNextHigherPrice(item.currentBid);
+            const listed = _.get(state.bid.listed, baseId, 0);
+            if (
+              newBid > trackedPlayer.price.buy
+              || listed >= settings.maxPlayer
+            ) {
+              // Remove from list if new bid is too high, or we already have too many listed
+              try {
+                await api.removeFromWatchlist(item.tradeId);
+                const trades = state.bid.trades;
+                delete trades[item.tradeId];
+                dispatch(setWatchlist(Object.values(trades)));
+              } catch (e) {
+                dispatch(addMessage('error', 'Error removing outbid item from watchlist', e));
+              }
+            } else if (state.account.credits > settings.minCredits) {
+              // Only continue if we have enough credits
+              let tradeResult = {};
+              try {
+                const placeBidResponse = await api.placeBid(item.tradeId, newBid);
+                dispatch(setCredits(placeBidResponse.credits));
+                tradeResult = _.get(placeBidResponse, 'auctionInfo[0]', {});
+              } catch (e) {
+                dispatch(addMessage('error', 'Error placing additional bid on item', e));
+              }
+              if (tradeResult.bidState !== 'highest') {
+                // TODO: do something about this
+                dispatch(addMessage('warn', `Something happened when trying to bid on ${tradeResult.tradeId}`));
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+}
+
+export function keepBidding() {
+  return async (dispatch, getState) => {
+    const state = getState();
     if (state.bid.bidding) {
       if (
         // We don't have enough credits
@@ -448,16 +468,33 @@ export function cycle() {
           (a, b) => (a < b.expires ? a : b.expires),
           60 // Wait a maximum of 60 seconds
         ) * 1000;
-        console.log(`Waiting ${timeout / 1000} seconds before continuing...`);
+        dispatch(addMessage('log', `Waiting ${timeout / 1000} seconds before continuing...`));
         cycleTimeout = window.setTimeout(() => {
           dispatch(cycle());
         }, timeout);
       } else {
+        dispatch(addMessage('log', 'Good to keep bidding'));
         await dispatch(cycle());
       }
     }
   };
 }
+
+export function updatePrice(player, settings) {
+  return async dispatch => {
+    const price = _.get(player, 'price', {});
+    if (settings.autoUpdate) {
+      const lastUpdated = moment(price.updated || 0);
+      if (!price.buy || moment().isAfter(lastUpdated.add(1, 'h'))) {
+        dispatch(addMessage('log', 'Updating price...'));
+        await dispatch(findPrice(player.id));
+      } else {
+        dispatch(addMessage('log', 'Price already up to date...'));
+      }
+    }
+  };
+}
+
 
 export function getTradepile(email) {
   return async dispatch => {
@@ -494,8 +531,17 @@ export function updateHistory(id, history) {
   return { type: types.UPDATE_PLAYER_HISTORY, id, history };
 }
 
+export function stop() {
+  if (cycleTimeout) {
+    window.clearTimeout(cycleTimeout);
+    cycleTimeout = undefined;
+  }
+  return { type: types.STOP_BIDDING };
+}
+
 export function getMarketData(platform, type = 'live_graph', playerId = null) {
   return async dispatch => {
+    /* istanbul ignore if */
     if (marketRequest) {
       marketRequest.abort();
       marketRequest = null;
@@ -532,28 +578,20 @@ export function getMarketData(platform, type = 'live_graph', playerId = null) {
       }
       // Map flags
       const fillFlagColor = function fillFlagColor(design) {
-        let graphColorArr = [];
-        switch (design) {
-          case '1':
-            graphColorArr = ['#000', '#000', '#dcb20a'];
-            break;
-          case '2':
-            graphColorArr = ['#046aaf', '#046aaf', '#fff'];
-            break;
-          case '3':
-            graphColorArr = ['#00591b', '#00591b', '#fff'];
-            break;
-          case '4':
-            graphColorArr = ['#6099e6', '#6099e6', '#fff'];
-            break;
-          case '5':
-            graphColorArr = ['#4f3581', '#4f3581', '#fff'];
-            break;
+        switch (parseInt(design, 10)) {
+          case 1:
+            return ['#000', '#000', '#dcb20a'];
+          case 2:
+            return ['#046aaf', '#046aaf', '#fff'];
+          case 3:
+            return ['#00591b', '#00591b', '#fff'];
+          case 4:
+            return ['#6099e6', '#6099e6', '#fff'];
+          case 5:
+            return ['#4f3581', '#4f3581', '#fff'];
           default:
-            graphColorArr = ['#fff', '#000'];
-            break;
+            return ['#fff', '#000', '#fff'];
         }
-        return graphColorArr;
       };
       market.flags = market.flags.map(flag => {
         const colorArray = fillFlagColor(flag.design);
@@ -570,14 +608,6 @@ export function getMarketData(platform, type = 'live_graph', playerId = null) {
         };
       });
       dispatch({ type: types.SAVE_MARKET_DATA, market });
-    });
+    }).catch(() => { /* then we just won't update */ });
   };
-}
-
-export function stop() {
-  if (cycleTimeout) {
-    window.clearTimeout(cycleTimeout);
-    cycleTimeout = undefined;
-  }
-  return { type: types.STOP_BIDDING };
 }

@@ -26,7 +26,6 @@ const history = syncHistoryWithStore(hashHistory, store);
 
 // Listen for messages from the auto updater
 ipcRenderer.on('updates', (event, updates) => {
-  console.log(updates.message);
   store.dispatch({ type: 'app/set/updates', updates });
 });
 

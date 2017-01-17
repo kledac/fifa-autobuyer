@@ -13,8 +13,9 @@ export class Transfers extends Component {
     this.counter = undefined;
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.counter = window.setInterval(() => {
+      /* istanbul ignore next */
       $('.expires').each(function countdown() {
         const expires = parseInt($(this).text(), 10);
         if (expires > 0) {
@@ -23,9 +24,9 @@ export class Transfers extends Component {
       });
     }, 1000);
     if (!this.props.bidding) {
-      await this.props.getWatchlist(this.props.email);
-      await this.props.getTradepile(this.props.email);
-      await this.props.getUnassigned(this.props.email);
+      this.props.getWatchlist(this.props.email);
+      this.props.getTradepile(this.props.email);
+      this.props.getUnassigned(this.props.email);
     }
   }
 
@@ -45,167 +46,171 @@ export class Transfers extends Component {
     const unassigned = _.get(this.props.bid, 'unassigned', []);
 
     return (
-      <div className="left">
-        <div className="wrapper">
-          <div className="widget">
-            <div className="top-bar">
-              <div className="text">
-                Buying <small>({watchlist.length}/{this.props.pilesize.watchlist})</small>
-              </div>
+      <div className="wrapper">
+        <div className="widget">
+          <div className="top-bar">
+            <div className="text">
+              Buying <small>({watchlist.length}/{this.props.pilesize.watchlist})</small>
             </div>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Max Price</th>
-                  <th>List Price</th>
-                  <th>BIN Price</th>
-                  <th>Current Bid</th>
-                  <th>Expires</th>
-                </tr>
-              </thead>
-              <tbody>
-                {_.map(
-                  watchlist,
-                  item => {
-                    const player = _.get(
-                      this.props.player,
-                      `list.${Fut.getBaseId(item.itemData.resourceId)}`,
-                      {}
-                    );
-                    const rowClass = classNames({
-                      success: item.bidState === 'highest',
-                      warning: item.bidState !== 'highest' && item.currentBid < player.price.buy && item.expires > -1,
-                      danger: item.bidState !== 'highest' && (item.expires === -1 || item.currentBid >= player.price.buy),
-                    });
-                    return (
-                      <tr key={`watchlist-${item.itemData.id}`} className={rowClass}>
-                        <td>{player.name}</td>
-                        <td>{item.bidState}</td>
-                        <td>{player.price.buy}</td>
-                        <td>{item.startingBid}</td>
-                        <td>{item.buyNowPrice}</td>
-                        <td>{item.currentBid}</td>
-                        <td className="expires">{item.expires}</td>
-                      </tr>
-                    );
-                  }
-                )}
-                {
-                  watchlist.length === 0
-                  ? <tr><td colSpan="7" style={{ textAlign: 'center' }}><small>No Watched Items</small></td></tr>
-                  : null
-                }
-              </tbody>
-            </table>
           </div>
-          <div className="widget">
-            <div className="top-bar">
-              <div className="text">
-                Selling <small>({tradepile.length}/{this.props.pilesize.tradepile})</small>
-              </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Max Price</th>
+                <th>List Price</th>
+                <th>BIN Price</th>
+                <th>Current Bid</th>
+                <th>Expires</th>
+              </tr>
+            </thead>
+            <tbody>
+              {_.map(
+                watchlist,
+                item => {
+                  const player = _.get(
+                    this.props.player,
+                    `list.${Fut.getBaseId(item.itemData.resourceId)}`,
+                    {
+                      name: 'Unknown',
+                      price: { buy: 'N/A' }
+                    }
+                  );
+                  const rowClass = classNames({
+                    success: item.bidState === 'highest',
+                    warning: item.bidState !== 'highest' && item.currentBid < player.price.buy && item.expires > -1,
+                    danger: item.bidState !== 'highest' && (item.expires === -1 || item.currentBid >= player.price.buy),
+                  });
+                  return (
+                    <tr key={`watchlist-${item.itemData.id}`} className={rowClass}>
+                      <td>{player.name}</td>
+                      <td>{item.bidState}</td>
+                      <td>{player.price.buy}</td>
+                      <td>{item.startingBid}</td>
+                      <td>{item.buyNowPrice}</td>
+                      <td>{item.currentBid}</td>
+                      <td className="expires">{item.expires}</td>
+                    </tr>
+                  );
+                }
+              )}
+              {
+                watchlist.length === 0
+                ? <tr><td colSpan="7" style={{ textAlign: 'center' }}><small>No Watched Items</small></td></tr>
+                : null
+              }
+            </tbody>
+          </table>
+        </div>
+        <div className="widget">
+          <div className="top-bar">
+            <div className="text">
+              Selling <small>({tradepile.length}/{this.props.pilesize.tradepile})</small>
             </div>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Bought For</th>
-                  <th>List Price</th>
-                  <th>BIN Price</th>
-                  <th>Current Bid</th>
-                  <th>Expires</th>
-                </tr>
-              </thead>
-              <tbody>
-                {_.map(
-                  tradepile,
-                  item => {
-                    const player = _.get(
-                      this.props.player,
-                      `list.${Fut.getBaseId(item.itemData.resourceId)}`,
-                      {}
-                    );
-                    const rowClass = classNames({
-                      success: item.itemData.itemState === 'invalid' && item.expires === -1,
-                      danger: item.itemData.itemState !== 'invalid' && item.expires === -1,
-                    });
-                    return (
-                      <tr key={`tradepile-${item.itemData.id}`} className={rowClass}>
-                        <td>{player.name}</td>
-                        <td>
-                          {
-                            item.itemData.itemState === 'invalid'
-                            ? 'sold'
-                            : item.itemData.itemState
-                          }
-                        </td>
-                        <td>{item.itemData.lastSalePrice || 'N/A'}</td>
-                        <td>{item.startingBid}</td>
-                        <td>{item.buyNowPrice}</td>
-                        <td>{item.currentBid}</td>
-                        <td className="expires">{item.expires}</td>
-                      </tr>
-                    );
-                  }
-                )}
-                {
-                  tradepile.length === 0
-                  ? <tr><td colSpan="7" style={{ textAlign: 'center' }}><small>No Listed Items</small></td></tr>
-                  : null
-                }
-              </tbody>
-            </table>
           </div>
-          <div className="widget">
-            <div className="top-bar">
-              <div className="text">
-                Unassigned
-              </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Bought For</th>
+                <th>List Price</th>
+                <th>BIN Price</th>
+                <th>Current Bid</th>
+                <th>Expires</th>
+              </tr>
+            </thead>
+            <tbody>
+              {_.map(
+                tradepile,
+                item => {
+                  const player = _.get(
+                    this.props.player,
+                    `list.${Fut.getBaseId(item.itemData.resourceId)}`,
+                    { name: 'Unknown' }
+                  );
+                  const rowClass = classNames({
+                    success: item.itemData.itemState === 'invalid' && item.expires === -1,
+                    danger: item.itemData.itemState !== 'invalid' && item.expires === -1,
+                  });
+                  return (
+                    <tr key={`tradepile-${item.itemData.id}`} className={rowClass}>
+                      <td>{player.name}</td>
+                      <td>
+                        {
+                          item.itemData.itemState === 'invalid'
+                          ? 'sold'
+                          : item.itemData.itemState
+                        }
+                      </td>
+                      <td>{item.itemData.lastSalePrice || 'N/A'}</td>
+                      <td>{item.startingBid}</td>
+                      <td>{item.buyNowPrice}</td>
+                      <td>{item.currentBid}</td>
+                      <td className="expires">{item.expires}</td>
+                    </tr>
+                  );
+                }
+              )}
+              {
+                tradepile.length === 0
+                ? <tr><td colSpan="7" style={{ textAlign: 'center' }}><small>No Listed Items</small></td></tr>
+                : null
+              }
+            </tbody>
+          </table>
+        </div>
+        <div className="widget">
+          <div className="top-bar">
+            <div className="text">
+              Unassigned
             </div>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Bought For</th>
-                  <th>List Price</th>
-                  <th>BIN Price</th>
-                  <th>Current Bid</th>
-                  <th>Expires</th>
-                </tr>
-              </thead>
-              <tbody>
-                {_.map(
-                  unassigned,
-                  item => {
-                    const player = _.get(
-                      this.props.player,
-                      `list.${Fut.getBaseId(item.resourceId)}`,
-                      {}
-                    );
-                    return (
-                      <tr key={`unassigned-${item.id}`}>
-                        <td>{player.name}</td>
-                        <td>{item.itemState}</td>
-                        <td>{item.lastSalePrice || 'N/A'}</td>
-                        <td>{player.price.sell}</td>
-                        <td>{player.price.bin}</td>
-                        <td>N/A</td>
-                        <td>N/A</td>
-                      </tr>
-                    );
-                  }
-                )}
-                {
-                  unassigned.length === 0
-                  ? <tr><td colSpan="7" style={{ textAlign: 'center' }}><small>No Unassigned Items</small></td></tr>
-                  : null
-                }
-              </tbody>
-            </table>
           </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Bought For</th>
+                <th>List Price</th>
+                <th>BIN Price</th>
+                <th>Current Bid</th>
+                <th>Expires</th>
+              </tr>
+            </thead>
+            <tbody>
+              {_.map(
+                unassigned,
+                item => {
+                  const player = _.get(
+                    this.props.player,
+                    `list.${Fut.getBaseId(item.resourceId)}`,
+                    {
+                      name: 'Unknown',
+                      price: { buy: 'N/A', sell: 'N/A' }
+                    }
+                  );
+                  return (
+                    <tr key={`unassigned-${item.id}`}>
+                      <td>{player.name}</td>
+                      <td>{item.itemState}</td>
+                      <td>{item.lastSalePrice || 'N/A'}</td>
+                      <td>{player.price.sell}</td>
+                      <td>{player.price.bin}</td>
+                      <td>N/A</td>
+                      <td>N/A</td>
+                    </tr>
+                  );
+                }
+              )}
+              {
+                unassigned.length === 0
+                ? <tr><td colSpan="7" style={{ textAlign: 'center' }}><small>No Unassigned Items</small></td></tr>
+                : null
+              }
+            </tbody>
+          </table>
         </div>
       </div>
     );
