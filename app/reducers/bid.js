@@ -31,7 +31,8 @@ export function bid(state = initialState, action) {
       nextState.logs.push(action.log);
       return nextState;
     case types.CLEAR_MESSAGES:
-      nextState = _.merge({}, state, { logs: [] });
+      nextState = _.merge({}, state);
+      nextState.logs = [];
       return nextState;
     case types.SET_CYCLES:
       nextState = _.merge({}, state, { cycles: action.count });

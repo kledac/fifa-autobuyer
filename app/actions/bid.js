@@ -118,10 +118,8 @@ export function snipe(player, settings) {
           dispatch(setBINStatus(true));
           // Increment number of trades won
           if (state.bid.listed[player.id] === undefined) {
-            // listed[player.id] = 1;
             dispatch(updateListed(player.id, 1));
           } else {
-            // listed[player.id] += 1;
             dispatch(updateListed(player.id, state.bid.listed[player.id] + 1));
           }
         } else {
@@ -207,8 +205,8 @@ export function placeBid(player, settings) {
             if (tradeResult.bidState === 'highest') {
               dispatch(addMessage('log', `Bidding ${bid} on ${player.name}`));
               // Add it to watched trades for listing and update our local watchlist
-              // trades[tradeResult.tradeId] = tradeResult;
-              dispatch(updateListed(tradeResult.tradeId, tradeResult));
+              dispatch(updateTrades(tradeResult.tradeId, tradeResult));
+              state = getState();
               dispatch(setWatchlist(Object.values(state.bid.trades)));
               // Increment number of trades watched
               if (state.bid.watched[player.id] === undefined) {
@@ -259,7 +257,12 @@ export function binNowToUnassigned() {
                 trackedPlayer.price.sell,
                 trackedPlayer.price.bin,
                 3600);
-              dispatch(updateListed(baseId, state.bid.listed[baseId] + 1));
+              // Increment number of trades won
+              if (state.bid.listed[baseId] === undefined) {
+                dispatch(updateListed(baseId, 1));
+              } else {
+                dispatch(updateListed(baseId, state.bid.listed[baseId] + 1));
+              }
               dispatch(updateHistory(baseId, {
                 id: i.id,
                 bought: i.lastSalePrice,
@@ -356,7 +359,7 @@ export function continueTracking(settings) {
         statuses = await api.getStatus(tradeIds);
         dispatch(setCredits(statuses.credits));
       } catch (e) {
-        dispatch(addMessage('error', 'Error getting trade statuses', e));
+        dispatch(addMessage('error', `Error getting trade statuses: ${JSON.stringify(tradeIds)}`, e));
         statuses = { auctionInfo: [] };
       }
       for (const item of statuses.auctionInfo) {
@@ -366,7 +369,7 @@ export function continueTracking(settings) {
         if (trackedPlayer && state.bid.trades[item.tradeId]) {
           // Handle Expired Items
           if (item.expires === -1) {
-            if (item.bidState === 'highest' || (item.tradeState === 'closed' && item.bidState === 'buyNow')) {
+            if (item.bidState === 'highest') {
               // We won! Send to Pile!
               let pileResponse;
               try {
@@ -383,7 +386,12 @@ export function continueTracking(settings) {
                     trackedPlayer.price.sell,
                     trackedPlayer.price.bin,
                     3600);
-                  dispatch(updateListed(baseId, state.bid.listed[baseId] + 1));
+                  // Increment number of trades won
+                  if (state.bid.listed[baseId] === undefined) {
+                    dispatch(updateListed(baseId, 1));
+                  } else {
+                    dispatch(updateListed(baseId, state.bid.listed[baseId] + 1));
+                  }
                   dispatch(updateHistory(baseId, {
                     id: item.itemData.id,
                     bought: item.currentBid,
@@ -408,9 +416,10 @@ export function continueTracking(settings) {
             state = getState();
             // We were outbid
             const newBid = Fut.calculateNextHigherPrice(item.currentBid);
+            const listed = _.get(state.bid.listed, baseId, 0);
             if (
               newBid > trackedPlayer.price.buy
-              || state.bid.listed[baseId] >= settings.maxPlayer
+              || listed >= settings.maxPlayer
             ) {
               // Remove from list if new bid is too high, or we already have too many listed
               try {

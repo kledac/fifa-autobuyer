@@ -507,7 +507,7 @@ describe('actions', () => {
         expect(cleanActions).to.be.eql(
           [
             accountActions.setCredits(4999),
-            actions.updateListed(12345, {
+            actions.updateTrades(12345, {
               tradeId: 12345,
               tradeState: 'closed',
               bidState: 'highest',
@@ -575,7 +575,7 @@ describe('actions', () => {
         expect(cleanActions).to.be.eql(
           [
             accountActions.setCredits(4999),
-            actions.updateListed(12345, {
+            actions.updateTrades(12345, {
               tradeId: 12345,
               tradeState: 'closed',
               bidState: 'highest',
@@ -1096,7 +1096,50 @@ describe('actions', () => {
         expect(cleanActions.length).to.eql(0);
       });
 
-      it('should error happen manually relist items but error throws again when relistItems() is called', async () => {
+      it('should handle 500 code when relistItems() is called', async () => {
+        const itemData = [{ tradeStae: 'expired', id: bidPlayer.Id, resourceId: 1, startingBid: 350, buyNowPrice: 550 }];
+        const listItemStub = sandbox.stub().throws();
+        const relistStub = sandbox.stub().returns({ code: 500 });
+        const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
+          relist: relistStub,
+          listItem: listItemStub
+        });
+
+        const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            binWon: true,
+            tradepile: [{ tradeState: 'expired', itemData }]
+          },
+          player: {
+            list: {
+              23: {
+                price: {
+                  sell: 600,
+                  bin: 1000
+                }
+              }
+            }
+          }
+        };
+
+        const store = mockStore(initialState);
+        const settings = { relistAll: true };
+
+        await store.dispatch(actions.relistItems(settings));
+        expect(apiStub.calledOnce).to.eql(true);
+        expect(relistStub.calledOnce).to.eql(true);
+        expect(getBaseIdStub.calledOnce).to.eql(true);
+        expect(listItemStub.calledOnce).to.eql(true);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
+      });
+
+      it('should handle error in api.listItem() when relistItems() is called', async () => {
         const itemData = [{ tradeStae: 'expired', id: bidPlayer.Id, resourceId: 1, startingBid: 350, buyNowPrice: 550 }];
         const listItemStub = sandbox.stub().throws();
         const relistStub = sandbox.stub().throws();
@@ -1139,7 +1182,7 @@ describe('actions', () => {
         expect(cleanActions.length).to.eql(0);
       });
 
-      it('should error happen manually relist items when relistItems() is called', async () => {
+      it('should manually relist items when error occurs on relistAll when relistItems() is called', async () => {
         const itemData = [{ tradeStae: 'expired', id: bidPlayer.Id, resourceId: 1, startingBid: 350, buyNowPrice: 550 }];
         const listItemStub = sandbox.stub().returns({});
         const relistStub = sandbox.stub().throws();
@@ -1354,20 +1397,9 @@ describe('actions', () => {
         expect(store.getActions().length).to.eql(0);
       });
 
-      it('should continue to track item when continueTracking() is called', async () => {
-        const itemData = {
-          tradeId: 1,
-          itemData: {
-            resourceId: 444,
-          },
-          startingBid: 350,
-          buyNowPrice: 550,
-          currentBid: 400,
-          sold: 400
-        };
-
+      it('should handle error in getStatus when continueTracking() is called', async () => {
         const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
-        const getStatusStub = sandbox.stub().returns({ credits: 4000, auctionInfo: [itemData] });
+        const getStatusStub = sandbox.stub().throws();
 
         const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
           getStatus: getStatusStub
@@ -1380,7 +1412,7 @@ describe('actions', () => {
           },
           bid: {
             trades: {
-              1: itemData
+              1: {}
             },
             listed: {}
           },
@@ -1402,10 +1434,125 @@ describe('actions', () => {
         await store.dispatch(actions.continueTracking(settings));
         expect(apiStub.calledOnce).to.eql(true);
         expect(getStatusStub.calledOnce).to.eql(true);
-        expect(getBaseIdStub.calledOnce).to.eql(true);
+        expect(getBaseIdStub.called).to.eql(false);
+        const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
+        expect(cleanActions.length).to.eql(0);
+      });
+
+      it('should continue to track item when continueTracking() is called', async () => {
+        const auctionInfo = [{
+          tradeId: 1,
+          expires: -1,
+          itemData: {
+            id: 1,
+            resourceId: 444,
+          },
+          startingBid: 350,
+          buyNowPrice: 550,
+          currentBid: 400,
+          bidState: 'highest'
+        }, {
+          tradeId: 2,
+          expires: -1,
+          itemData: {
+            id: 2,
+            resourceId: 444,
+          },
+          startingBid: 350,
+          buyNowPrice: 550,
+          currentBid: 400,
+          bidState: 'outbid'
+        }, {
+          tradeId: 3,
+          expires: 100,
+          itemData: {
+            id: 3,
+            resourceId: 444,
+          },
+          startingBid: 350,
+          buyNowPrice: 550,
+          currentBid: 10000,
+          bidState: 'outbid'
+        }, {
+          tradeId: 4,
+          expires: 100,
+          itemData: {
+            id: 4,
+            resourceId: 444,
+          },
+          startingBid: 350,
+          buyNowPrice: 550,
+          currentBid: 400,
+          bidState: 'outbid'
+        }];
+
+        const getBaseIdStub = sandbox.stub(Fut, 'getBaseId').returns(23);
+        const getStatusStub = sandbox.stub().returns({ credits: 4000, auctionInfo });
+        const sendToTradepileStub = sandbox.stub().returns({ itemData: [{ success: true }] });
+        const listItemStub = sandbox.stub().returns({});
+        const removeFromWatchlistStub = sandbox.stub().returns({});
+        const placeBidStub = sandbox.stub()
+          .returns({ credits: 3500, auctionInfo: [auctionInfo[2]] });
+
+        const apiStub = sandbox.stub(ApiUtil, 'getApi').returns({
+          getStatus: getStatusStub,
+          sendToTradepile: sendToTradepileStub,
+          listItem: listItemStub,
+          removeFromWatchlist: removeFromWatchlistStub,
+          placeBid: placeBidStub
+        });
+
+        const initialState = {
+          account: {
+            email: 'test@test.com',
+            credits: 5000
+          },
+          bid: {
+            trades: {
+              1: auctionInfo[0],
+              2: auctionInfo[1],
+              3: auctionInfo[2],
+              4: auctionInfo[3]
+            },
+            listed: {}
+          },
+          player: {
+            list: {
+              23: {
+                history: {},
+                price: {
+                  buy: 600,
+                  sell: 700,
+                  bin: 1000
+                }
+              }
+            }
+          }
+        };
+
+        const settings = { snipeOnly: false, minCredits: 1000, maxPlayer: 5 };
+        const store = mockStore(initialState);
+        await store.dispatch(actions.continueTracking(settings));
+        expect(apiStub.calledOnce).to.eql(true);
+        expect(getStatusStub.calledOnce).to.eql(true);
+        expect(getBaseIdStub.callCount).to.eql(4);
+        expect(sendToTradepileStub.calledOnce).to.eql(true);
+        expect(listItemStub.calledOnce).to.eql(true);
+        expect(removeFromWatchlistStub.calledTwice).to.eql(true);
+        expect(placeBidStub.calledOnce).to.eql(true);
         const cleanActions = _.filter(store.getActions(), a => a.type !== types.ADD_MESSAGE);
         expect(cleanActions).to.eql([
-          accountActions.setCredits(4000)
+          accountActions.setCredits(4000),
+          // Update listed count for won
+          actions.updateListed(23, 1),
+          // Update purchase history
+          actions.updateHistory(23, { bought: 400, boughtAt: 0, id: 1 }),
+          // remove expired lost
+          actions.setWatchlist([auctionInfo[0], auctionInfo[2], auctionInfo[3]]),
+          // remove outbid won't pay
+          actions.setWatchlist([auctionInfo[0], auctionInfo[3]]),
+          // Update credits after bidding war starts
+          accountActions.setCredits(3500),
         ]);
       });
 
