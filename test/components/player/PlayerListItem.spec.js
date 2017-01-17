@@ -61,7 +61,7 @@ describe('components', () => {
       it('should display player stats', () => {
         const { stats } = setup();
         expect(stats).to.have.length(1);
-        expect(stats.text()).to.equal(`${player.rating} | ${player.position}`);
+        expect(stats.text()).to.equal(`${player.rating} | ${player.position}0/0/0`);
       });
 
       it('should handle mouse events', () => {

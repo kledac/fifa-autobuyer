@@ -30,6 +30,13 @@ describe('actions', () => {
           { type: types.SET_CREDITS, credits }
         );
       });
+
+      it('should create SET_PILESIZE action when setPilesize() is called', () => {
+        const { key, value } = { key: 'tradepile', value: 30 };
+        expect(actions.setPilesize(key, value)).to.eql(
+          { type: types.SET_PILESIZE, key, value }
+        );
+      });
     });
     describe('async creators', () => {
       afterEach(() => {
@@ -55,7 +62,7 @@ describe('actions', () => {
           });
       });
 
-      it('should dispatch SET_CREDITS when getCoins is completed', () => {
+      it('should dispatch SET_CREDITS when getCredits is completed', () => {
         // Mock credits response
         const credits = 1000;
         nock('https://utas.external.s3.fut.ea.com')
@@ -67,6 +74,26 @@ describe('actions', () => {
         return store.dispatch(actions.getCredits(email))
           .then(() => { // return of async actions
             expect(store.getActions()).to.include(actions.setCredits(credits));
+          });
+      });
+
+      it('should dispatch SET_PILESIZE when getPilesize is completed', () => {
+        // Mock pilesize response
+        const response = { entries: [{ key: 2, value: 30 }, { key: 4, value: 30 }] };
+        nock('https://utas.external.s3.fut.ea.com')
+          .post(`/ut/game/fifa${version}/clientdata/pileSize`)
+          .reply(200, response);
+
+        const store = mockStore({});
+        return store.dispatch(actions.getPilesize(email))
+          .then(() => { // return of async actions
+            const reduxActions = store.getActions();
+            expect(reduxActions).to.include(
+              actions.setPilesize('tradepile', response.entries[0].value)
+            );
+            expect(reduxActions).to.include(
+              actions.setPilesize('watchlist', response.entries[1].value)
+            );
           });
       });
     });

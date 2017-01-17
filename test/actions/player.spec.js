@@ -36,6 +36,12 @@ describe('actions', () => {
           { type: types.REMOVE_PLAYER, player }
         );
       });
+
+      it('clear should create CLEAR_LIST action', () => {
+        expect(actions.clear()).to.eql(
+          { type: types.CLEAR_LIST }
+        );
+      });
     });
     describe('async creators', () => {
       afterEach(() => {
@@ -79,6 +85,9 @@ describe('actions', () => {
           player: {
             search: {},
             list: {}
+          },
+          settings: {
+            autoUpdate: true
           }
         };
 
@@ -90,10 +99,7 @@ describe('actions', () => {
         await api.login();
         // Dispatch with lowest already set to trigger SET_PRICE
         await store.dispatch(actions.findPrice(PLAYER_ID));
-
-        expect(store.getActions()).to.deep.include(
-          { type: types.SET_PRICE, id: 158023, price: { lowest: 866000, total: 16 } }
-        );
+        expect(store.getActions()[0].type).to.eql(types.SET_PRICE);
       });
     });
   });

@@ -167,6 +167,15 @@ export const totwPlayer = {
   price: {
     lowest: 239000,
     total: 1
+  },
+  history: {
+    123456789: {
+      id: 123456789,
+      bought: 239000,
+      boughtAt: 123456789,
+      sold: 269000,
+      soldAt: 142356789
+    }
   }
 };
 
@@ -345,5 +354,14 @@ export default {
   price: {
     lowest: 1411000,
     total: 1
+  },
+  history: {
+    123456789: {
+      id: 123456789,
+      bought: 1411000,
+      boughtAt: 123456789,
+      sold: 1450000,
+      soldAt: 142356789
+    }
   }
 };
